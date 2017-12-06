@@ -1,4 +1,5 @@
 import sqlite3
+import os
 
 from flask import Flask, flash, redirect, render_template, request, session, abort
 
@@ -16,9 +17,17 @@ app.register_blueprint(search_api)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    curs = db_connection.cursor()
+    curs.execute('SELECT * FROM MOVIE')
+    rows = curs.fetchall()
+    return render_template('index.html', rows=rows)
 
 
 if __name__ == '__main__':
-    db_connection = sqlite3.connect("ym.db")
+    db_connection = sqlite3.connect(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'ym.db'
+        )
+    )
     app.run()
