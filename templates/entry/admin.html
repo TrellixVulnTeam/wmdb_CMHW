@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Data Entry - USER</title>
+    <title>Data Entry - ADMIN</title>
 </head>
 <body>
-<form action = "{{ url_for('entry_api.user_entry') }}" method="POST">
+<form action = "{{ url_for('entry_api.admin_entry') }}" method="POST">
     <h3>Add a New User:</h3>
     <p>u_name - username (must be unique)</p>
     <input type="text" name="u_name" />
