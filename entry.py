@@ -69,34 +69,39 @@ def admin_entry():
     if not check_user():
         abort(403)
     message = None
+    curs = db_connection.cursor()
+    curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ADMIN) ORDER BY UID")
+    users = curs.fetchall()
     if request.method == 'GET':
-        return render_template('entry/admin.html', message=message)
+        return render_template('entry/admin.html', users=users, message=message)
     elif request.method == 'POST':
         try:
-            u_name = request.form['u_name']
-            email = request.form['email']
+            uid = request.form['uid']
+            position = request.form['position']
         except KeyError:
             message = 'bad form data'
-            return render_template('entry/admin.html', message=message)
-        if (not re.match(r'[a-z0-9]+', u_name)) or len(u_name) > 40:
-            message = "u_name must be alphanumeric and at most 40 characters"
-            return render_template('entry/admin.html', message=message)
-        if not validate_email(email):
-            message = "invalid email format"
-            return render_template('entry/admin.html', message=message)
+            return render_template('entry/admin.html', users=users, message=message)
+        if not re.match(r'[0-9]+', uid):
+            message = "uid must be numeric"
+            return render_template('entry/admin.html', users=users, message=message)
+        if (not re.match(r'[a-zA-z_]+', position)) or len(position) > 20:
+            message = "position must be alpha characters and underscores and at most 20 characters"
+            return render_template('entry/admin.html', users=users, message=message)
         try:
             cur = db_connection.cursor()
-            cur.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
+            cur.execute("INSERT INTO ADMIN VALUES (?, ?)", (uid, position))
             uid = cur.lastrowid
             db_connection.commit()
-            inserted_row = cur.execute("SELECT * FROM USER WHERE UID=?", (uid,))
+            inserted_row = cur.execute("SELECT * FROM ADMIN WHERE UID=?", (uid,))
             message = 'inserted new user successfully: ' + str(inserted_row.fetchone())
-            return render_template('entry/admin.html', message=message)
+            curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ADMIN) ORDER BY UID")
+            users = curs.fetchall()
+            return render_template('entry/admin.html', users=users, message=message)
         except sqlite3.Error as err:
             print(err)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/admin.html', message=message)
+            return render_template('entry/admin.html', users=users, message=message)
     else:
         abort(405)
 
