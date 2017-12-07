@@ -476,7 +476,7 @@ def review_entry():
             # commit changes
             db_connection.commit()
             # get the newly entered row
-            inserted_row = cur.execute("SELECT * FROM REVIEW WHERE MID == ? AND UID == ?", (mid,uid))
+            inserted_row = cur.execute("SELECT * FROM REVIEW WHERE MID == ? AND UID == ?", (mid, uid))
             # show success message
             message = 'inserted new review successfully: ' + str(inserted_row.fetchone())
             return render_template('entry/review.html', movies=movies, users=users, message=message), 201
@@ -493,8 +493,73 @@ def review_entry():
 
 @entry_api.route("/entry/acted", methods=['POST', 'GET'])
 def acted_entry():
+    """
+    Handle requests for entry into ACTED_IN relation. Post requests must have fields mid, uid, and character_role. MID
+    and UID must be present in MOVIE and USER. Must not be present already in the relation (i.e., no actors playing
+    multiple roles in the same movie).
+    :return: rendered template including dropdowns for mid and uid of movies and actors
+    """
+    # check user authorization
     if not check_user():
+        # abort if not authorized
         abort(403)
+    # default empty message
+    message = None
+    # get movies for mid dropdown
+    curs = db_connection.cursor()
+    curs.execute("SELECT MID, title FROM MOVIE ORDER BY MID")
+    movies = curs.fetchall()
+    # get users for uid dropdown
+    curs.execute("SELECT ACTOR.UID, u_name FROM USER, ACTOR WHERE USER.UID == ACTOR.UID ORDER BY ACTOR.UID")
+    users = curs.fetchall()
+    if request.method == 'GET':
+        # handle get requests with empty message and movie/user dropdowns
+        return render_template('entry/acted.html', movies=movies, users=users, message=message)
+    elif request.method == 'POST':
+        # handle post requests as data entry
+        try:
+            # get required form fields
+            mid = request.form['mid']
+            uid = request.form['uid']
+            character_role = request.form['character_role']
+        except KeyError:
+            # show error message for missing fields
+            message = 'bad form data'
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 400
+        if not re.match(r'[0-9]+', mid):
+            # test for mid being strictly numeric
+            message = 'mid must be numeric'
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 400
+        if not re.match(r'[0-9]+', uid):
+            # test for uid being strictly numeric
+            message = 'uid must be numeric'
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 400
+        if (not re.match(r'[0-9a-zA-Z\'\- ]+', character_role)) or len(character_role) > 20:
+            # test character role for being alphanumeric with spaces, apostrophes, hyphens, or spaces
+            message = 'character_role must be alphanumeric with spaces, apostrophes, hyphens, or spaces less than 20 ' \
+                      'characters'
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 400
+        try:
+            # try to enter the new role
+            cur = db_connection.cursor()
+            cur.execute('INSERT INTO ACTED_IN VALUES (?, ?, ?)', (mid, uid, character_role))
+            # commit changes
+            db_connection.commit()
+            # get the newly entered row
+            inserted_row = cur.execute("SELECT * FROM ACTED_IN WHERE MID == ? AND UID == ?", (mid, uid))
+            # show success message
+            message = 'inserted new role successfully: ' + str(inserted_row.fetchone())
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 201
+        except sqlite3.Error as err:
+            # handle sql errors (probably mid, uid already existing)
+            db_connection.rollback()
+            # show error message on bad value
+            message = 'error inserting tuple (' + str(err) + ')'
+            return render_template('entry/acted.html', movies=movies, users=users, message=message), 400
+    else:
+        # if not get or post, abort (should never happen, but just in case)
+        abort(405)
+
     return render_template('entry/acted.html')
 
 
