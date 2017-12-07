@@ -418,9 +418,77 @@ def movie_entry():
 
 @entry_api.route("/entry/review", methods=['POST', 'GET'])
 def review_entry():
+    """
+    Handle review entry requests. Post requests must have fields: MID, UID, text, and rating. Uses current time as
+    created date. MID and UID must exist in movies and users respectively. Text can be empty, but must only contain
+    letters, numbers, spaces, and punctuation. Rating must be between 0 and 5.
+    :return: rendered template including list of movies and users
+    """
+    # check that user is authorized
     if not check_user():
+        # abort if not authorized
         abort(403)
-    return render_template('entry/review.html')
+    # default empty message
+    message = None
+    # get movies for mid dropdown
+    curs = db_connection.cursor()
+    curs.execute("SELECT MID, title FROM MOVIE ORDER BY MID")
+    movies = curs.fetchall()
+    # get users for uid dropdown
+    curs.execute("SELECT UID, u_name FROM USER ORDER BY UID")
+    users = curs.fetchall()
+    if request.method == 'GET':
+        # handle get requests with empty message and movie/user dropdowns
+        return render_template('entry/review.html', movies=movies, users=users, message=message)
+    elif request.method == 'POST':
+        # handle post requests as data entry
+        try:
+            mid = request.form['mid']
+            uid = request.form['uid']
+            text = request.form['text']
+            rating = int(request.form['rating'])
+        except KeyError:
+            # show error message for missing fields
+            message = 'bad form data'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+        if not re.match(r'[0-9]+', mid):
+            # test for mid being strictly numeric
+            message = 'mid must be numeric'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+        if not re.match(r'[0-9]+', uid):
+            # test for uid being strictly numeric
+            message = 'uid must be numeric'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+        if not re.match(r'[0-9a-zA-Z_.,"\'()!@$*=\-+&:]*', text):
+            # test for text matching only alphanumeric and punctuation
+            message = 'text must be alphanumeric with punctuation (no carats, braces, or octothorpes)'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+        if rating < 0 or rating > 5:
+            # make sure rating is [0:5]
+            message = 'rating must be from zero to five'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+        try:
+            # try to insert the new review entry
+            cur = db_connection.cursor()
+            # pass now as created date for this review
+            cur.execute("INSERT INTO REVIEW VALUES (?, ?, ?, ?, strftime('%s', 'now'))",
+                        (mid, uid, text, rating))
+            # commit changes
+            db_connection.commit()
+            # get the newly entered row
+            inserted_row = cur.execute("SELECT * FROM REVIEW WHERE MID == ? AND UID == ?", (mid,uid))
+            # show success message
+            message = 'inserted new review successfully: ' + str(inserted_row.fetchone())
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 201
+        except sqlite3.Error as err:
+            # handle sql errors (probably mid, uid already existing)
+            db_connection.rollback()
+            # show error message on bad value
+            message = 'error inserting tuple (' + str(err) + ')'
+            return render_template('entry/review.html', movies=movies, users=users, message=message), 400
+    else:
+        # if not get or post, abort (should never happen, but just in case)
+        abort(405)
 
 
 @entry_api.route("/entry/acted", methods=['POST', 'GET'])

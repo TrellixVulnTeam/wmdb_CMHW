@@ -1,12 +1,25 @@
 {% extends 'layout.html' %}
 {% block body %}
-    <form action="{{ url_for('entry_api.user_entry') }}" method="POST">
-        <h3>Add a New User:</h3>
-        <p>u_name - username (must be unique)</p>
-        <input type="text" name="u_name"/>
-        <p>email - user's email (must be unique)</p>
-        <input type="email" name="email"/>
-        <p>Add User: <input type="submit" value="Submit"/></p>
+    <form action="{{ url_for('entry_api.review_entry') }}" method="POST">
+        <h3>Add a New Review:</h3>
+        <p>Note: will fail if MID, UID combination already exists.</p>
+        <p>MID - movie id (of movie being reviewed)</p>
+        <select name="mid">
+            {% for movie in movies %}
+                <option value="{{ movie[0] }}">{{ movie[0] }} - {{ movie[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>UID - user who is making this review</p>
+        <select name="uid">
+            {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>text - review text (must contain only alphanumeric characters and punctuation)</p>
+        <input type="text" name="text"/>
+        <p>rating - rating (from 0 to 5) for this review</p>
+        <input type="number" name="rating" min="0" max="5" />
+        <p>Add Review: <input type="submit" value="Submit"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>
         {% endif %}
