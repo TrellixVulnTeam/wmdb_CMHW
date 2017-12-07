@@ -1,11 +1,23 @@
 {% extends 'layout.html' %}
 {% block body %}
-    <form action="{{ url_for('entry_api.user_entry') }}" method="POST">
-        <h3>Add a New User:</h3>
-        <p>u_name - username (must be unique)</p>
-        <input type="text" name="u_name"/>
-        <p>email - user's email (must be unique)</p>
-        <input type="email" name="email"/>
+    <form action="{{ url_for('entry_api.movie_entry') }}" method="POST">
+        <h3>Add a New Movie:</h3>
+        <p>director_UID - user id of primary director (must exist in DIRECTOR relation)</p>
+        <select name="director_uid">
+            {% for director in directors %}
+                <option value="{{ director[0] }}">{{ director[0] }} - {{ director[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>title - movie title</p>
+        <input type="text" name="title"/>
+        <p>release_date - date of movie release</p>
+        <input type="date" name="release_date"/>
+        <p>entered_by - user id of admin who is making this entry (must exist in ADMIN relation)</p>
+        <select name="entered_uid">
+            {% for admin in admins %}
+                <option value="{{ admin[0] }}">{{ admin[0] }} - {{ admin[1] }}</option>
+            {% endfor %}
+        </select>
         <p>Add User: <input type="submit" value="Submit"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>

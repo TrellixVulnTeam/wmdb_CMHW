@@ -21,6 +21,11 @@ def check_user():
     return True
 
 
+def unix_time(dt):
+    epoch = datetime.utcfromtimestamp(0)
+    return (dt - epoch).total_seconds()
+
+
 @entry_api.route("/entry")
 def entry_index():
     if not check_user():
@@ -57,7 +62,6 @@ def user_entry():
             message = 'inserted new user successfully: ' + str(inserted_row.fetchone())
             return render_template('entry/user.html', message=message), 201
         except sqlite3.Error as err:
-            print(err)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
             return render_template('entry/user.html', message=message), 400
@@ -99,7 +103,6 @@ def admin_entry():
             users = curs.fetchall()
             return render_template('entry/admin.html', users=users, message=message), 201
         except sqlite3.Error as err:
-            print(err)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
             return render_template('entry/admin.html', users=users, message=message), 400
@@ -143,9 +146,9 @@ def director_entry():
         try:
             cur = db_connection.cursor()
             if famous_for == "NULL":
-                cur.execute("INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)", (uid, given_name, dob.timestamp()))
+                cur.execute("INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)", (uid, given_name, unix_time(dob)))
             else:
-                cur.execute("INSERT INTO DIRECTOR VALUES (?, ?, ?, ?)", (uid, famous_for, given_name, dob.timestamp()))
+                cur.execute("INSERT INTO DIRECTOR VALUES (?, ?, ?, ?)", (uid, famous_for, given_name, unix_time(dob)))
             uid = cur.lastrowid
             db_connection.commit()
             inserted_row = cur.execute("SELECT * FROM DIRECTOR WHERE UID=?", (uid,))
@@ -154,7 +157,6 @@ def director_entry():
             users = curs.fetchall()
             return render_template('entry/director.html', users=users, movies=movies, message=message), 201
         except sqlite3.Error as err:
-            print(err)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
             return render_template('entry/director.html', users=users, movies=movies, message=message), 400
@@ -196,18 +198,17 @@ def actor_entry():
         try:
             cur = db_connection.cursor()
             if stage_name == "":
-                cur.execute("INSERT INTO ACTOR VALUES (?, NULL, ?, ?)", (uid, given_name, dob.timestamp()))
+                cur.execute("INSERT INTO ACTOR VALUES (?, NULL, ?, ?)", (uid, given_name, unix_time(dob)))
             else:
-                cur.execute("INSERT INTO ACTOR VALUES (?, ?, ?, ?)", (uid, stage_name, given_name, dob.timestamp()))
+                cur.execute("INSERT INTO ACTOR VALUES (?, ?, ?, ?)", (uid, stage_name, given_name, unix_time(dob)))
             uid = cur.lastrowid
             db_connection.commit()
-            inserted_row = cur.execute("SELECT * FROM DIRECTOR WHERE UID=?", (uid,))
+            inserted_row = cur.execute("SELECT * FROM ACTOR WHERE UID=?", (uid,))
             message = 'inserted new actor successfully: ' + str(inserted_row.fetchone())
             curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ACTOR) ORDER BY UID")
             users = curs.fetchall()
             return render_template('entry/actor.html', users=users, message=message), 201
         except sqlite3.Error as err:
-            print(err)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
             return render_template('entry/actor.html', users=users, message=message), 400
@@ -219,7 +220,49 @@ def actor_entry():
 def movie_entry():
     if not check_user():
         abort(403)
-    return render_template('entry/movie.html')
+    message = None
+    curs = db_connection.cursor()
+    curs.execute("SELECT DIRECTOR.UID, u_name FROM USER, DIRECTOR WHERE USER.UID == DIRECTOR.UID ORDER BY DIRECTOR.UID")
+    directors = curs.fetchall()
+    curs.execute("SELECT ADMIN.UID, u_name FROM USER, ADMIN WHERE USER.UID == ADMIN.UID ORDER BY ADMIN.UID")
+    admins = curs.fetchall()
+    if request.method == 'GET':
+        return render_template('entry/movie.html', directors=directors, admins=admins, message=message)
+    elif request.method == 'POST':
+        try:
+            director_uid = request.form['director_uid']
+            title = request.form['title']
+            release_date = datetime.strptime(request.form['release_date'], '%Y-%m-%d')
+            entered_uid = request.form['entered_uid']
+        except KeyError:
+            message = 'bad form data'
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+        except ValueError:
+            message = 'bad date format'
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+        if not re.match(r'[0-9]+', director_uid):
+            message = "director uid must be numeric"
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+        if len(title) < 1 or len(title) > 40:
+            message = "title must be between 1 and 40 characters long (inclusive)"
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+        if not re.match(r'[0-9]+', entered_uid):
+            message = "entered uid must be numeric"
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+        try:
+            cur = db_connection.cursor()
+            cur.execute("INSERT INTO MOVIE VALUES (NULL, ?, ?, ?, ?, strftime('%s', 'now'))", (director_uid, title, unix_time(release_date), entered_uid))
+            mid = cur.lastrowid
+            db_connection.commit()
+            inserted_row = cur.execute("SELECT * FROM MOVIE WHERE MID=?", (mid,))
+            message = 'inserted new movie successfully: ' + str(inserted_row.fetchone())
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 201
+        except sqlite3.Error as err:
+            db_connection.rollback()
+            message = 'error inserting tuple (' + str(err) + ')'
+            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+    else:
+        abort(405)
 
 
 @entry_api.route("/entry/review", methods=['POST', 'GET'])
@@ -247,34 +290,5 @@ def poster_entry():
 def bulk_entry():
     if not check_user():
         abort(403)
-    message = None
-    if request.method == 'GET':
-        return render_template('entry/bulk.html', message=message)
-    elif request.method == 'POST':
-        try:
-            u_name = request.form['u_name']
-            email = request.form['email']
-        except KeyError:
-            message = 'bad form data'
-            return render_template('entry/bulk.html', message=message)
-        if (not re.match(r'[a-z0-9]+', u_name)) or len(u_name) > 40:
-            message = "u_name must be alphanumeric and at most 40 characters"
-            return render_template('entry/bulk.html', message=message)
-        if not validate_email(email):
-            message = "invalid email format"
-            return render_template('entry/bulk.html', message=message)
-        try:
-            cur = db_connection.cursor()
-            cur.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
-            uid = cur.lastrowid
-            db_connection.commit()
-            inserted_row = cur.execute("SELECT * FROM USER WHERE UID=?", (uid,))
-            message = 'inserted new user successfully: ' + str(inserted_row.fetchone())
-            return render_template('entry/bulk.html', message=message)
-        except sqlite3.Error as err:
-            print(err)
-            db_connection.rollback()
-            message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/bulk.html', message=message)
-    else:
-        abort(405)
+    abort(501)
+    return render_template('entry/bulk.html')
