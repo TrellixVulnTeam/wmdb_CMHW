@@ -1,0 +1,24 @@
+<!DOCTYPE html><!doctype html>
+<html>
+   <body>
+
+      <table border = 1>
+         <thead>
+            <td>MID</td>
+            <td>UID</td>
+            <td>Role</td>
+         </thead>
+
+         {% for row in rows %}
+            <tr>
+               <td>{{row["MID"]}}</td>
+               <td>{{row["UID"]}}</td>
+               <td> {{ row["character_role"]}}</td>
+            </tr>
+         {% endfor %}
+      </table>
+
+      <a href = "/">Go back to home page</a>
+
+   </body>
+</html>

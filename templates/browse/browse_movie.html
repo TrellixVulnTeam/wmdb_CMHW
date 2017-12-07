@@ -1,0 +1,30 @@
+<!DOCTYPE html><!doctype html>
+<html>
+   <body>
+
+      <table border = 1>
+         <thead>
+            <td>MID</td>
+            <td>Director UID</td>
+            <td>Title</td>
+            <td>Release Date</td>
+            <td>Entered By</td>
+            <td>Entered Date</td>
+         </thead>
+
+         {% for row in rows %}
+            <tr>
+               <td>{{row["MID"]}}</td>
+               <td>{{row["director_UID"]}}</td>
+               <td> {{ row["title"]}}</td>
+               <td>{{row["release_date"]}}</td>
+                <td>{{row["entered_by"]}}</td>
+                <td>{{row["entered_date"]}}</td>
+            </tr>
+         {% endfor %}
+      </table>
+
+      <a href = "/">Go back to home page</a>
+
+   </body>
+</html>
