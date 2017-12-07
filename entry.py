@@ -598,10 +598,14 @@ def poster_entry():
         return render_template('entry/poster.html', movies=movies, message=None, image_name=None)
     elif request.method == 'POST':
         # handle post requests as upload
+        if 'img' not in request.files:
+            # show error if no file in post data
+            message = 'no file uploaded'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
         try:
             # try to get field and file
             mid = request.form['mid']
-            img = request.form['img']
+            img = request.files['img']
         except KeyError:
             # show error if file not uploaded, or form data bad
             message = 'bad form data'
@@ -630,6 +634,9 @@ def poster_entry():
         if img and allowed_file(img.filename):
             # save the file
             img.save(os.path.join(POSTER_DIR, filename))
+            # get the tuple
+            cur.execute('SELECT img FROM POSTER WHERE MID==?', (mid,))
+            filename = str(cur.fetchone()[0])
             # show success message
             message = 'successfully added poster file for movie id: ' + str(mid)
             return render_template('entry/poster.html', movies=movies, message=message, image_name=filename), 201

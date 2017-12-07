@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
 {% block body %}
-    <form action="{{ url_for('entry_api.poster_entry') }}" method="POST">
+    <form action="{{ url_for('entry_api.poster_entry') }}" method="POST" enctype=multipart/form-data>
         <h3>Upload a Poster:</h3>
         <p>MID - id of movie whose poster is being uploaded</p>
         <select name="mid">
@@ -9,7 +9,7 @@
             {% endfor %}
         </select>
         <p>img - image file containing poster</p>
-        <input type="file" name="img"/>
+        <input type=file name=img>
         <p>Upload Poster: <input type="submit" value="Upload"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>
