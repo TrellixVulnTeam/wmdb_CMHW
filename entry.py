@@ -94,7 +94,7 @@ def admin_entry():
             uid = cur.lastrowid
             db_connection.commit()
             inserted_row = cur.execute("SELECT * FROM ADMIN WHERE UID=?", (uid,))
-            message = 'inserted new user successfully: ' + str(inserted_row.fetchone())
+            message = 'inserted new admin successfully: ' + str(inserted_row.fetchone())
             curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ADMIN) ORDER BY UID")
             users = curs.fetchall()
             return render_template('entry/admin.html', users=users, message=message), 201
@@ -149,7 +149,7 @@ def director_entry():
             uid = cur.lastrowid
             db_connection.commit()
             inserted_row = cur.execute("SELECT * FROM DIRECTOR WHERE UID=?", (uid,))
-            message = 'inserted new user successfully: ' + str(inserted_row.fetchone())
+            message = 'inserted new director successfully: ' + str(inserted_row.fetchone())
             curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM DIRECTOR) ORDER BY UID")
             users = curs.fetchall()
             return render_template('entry/director.html', users=users, movies=movies, message=message), 201
@@ -166,7 +166,53 @@ def director_entry():
 def actor_entry():
     if not check_user():
         abort(403)
-    return render_template('entry/actor.html')
+    message = None
+    curs = db_connection.cursor()
+    curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ACTOR) ORDER BY UID")
+    users = curs.fetchall()
+    if request.method == 'GET':
+        return render_template('entry/actor.html', users=users, message=message)
+    elif request.method == 'POST':
+        try:
+            uid = request.form['uid']
+            stage_name = request.form['stage_name']
+            given_name = request.form['given_name']
+            dob = datetime.strptime(request.form['dob'], '%Y-%m-%d')
+        except KeyError:
+            message = 'bad form data'
+            return render_template('entry/actor.html', users=users, message=message), 400
+        except ValueError:
+            message = 'bad date format'
+            return render_template('entry/actor.html', users=users, message=message), 400
+        if not re.match(r'[0-9]+', uid):
+            message = "uid must be numeric"
+            return render_template('entry/actor.html', users=users, message=message), 400
+        if (not stage_name == "") and ((not re.match(r'[a-zA-z ]+', stage_name)) or len(stage_name) > 40):
+            message = "stage name must be alpha characters and spaces and at most 40 characters"
+            return render_template('entry/actor.html', users=users, message=message), 400
+        if (not re.match(r'[a-zA-z ]+', given_name)) or len(given_name) > 40:
+            message = "name must be alpha characters and spaces and at most 40 characters"
+            return render_template('entry/actor.html', users=users, message=message), 400
+        try:
+            cur = db_connection.cursor()
+            if stage_name == "":
+                cur.execute("INSERT INTO ACTOR VALUES (?, NULL, ?, ?)", (uid, given_name, dob.timestamp()))
+            else:
+                cur.execute("INSERT INTO ACTOR VALUES (?, ?, ?, ?)", (uid, stage_name, given_name, dob.timestamp()))
+            uid = cur.lastrowid
+            db_connection.commit()
+            inserted_row = cur.execute("SELECT * FROM DIRECTOR WHERE UID=?", (uid,))
+            message = 'inserted new actor successfully: ' + str(inserted_row.fetchone())
+            curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ACTOR) ORDER BY UID")
+            users = curs.fetchall()
+            return render_template('entry/actor.html', users=users, message=message), 201
+        except sqlite3.Error as err:
+            print(err)
+            db_connection.rollback()
+            message = 'error inserting tuple (' + str(err) + ')'
+            return render_template('entry/actor.html', users=users, message=message), 400
+    else:
+        abort(405)
 
 
 @entry_api.route("/entry/movie", methods=['POST', 'GET'])
