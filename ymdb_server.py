@@ -16,5 +16,11 @@ def index():
     return render_template('index.html')
 
 
+@app.after_request
+def add_header(response):
+    response.cache_control.max_age = 0
+    return response
+
+
 if __name__ == '__main__':
     app.run()

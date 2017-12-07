@@ -1,24 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Data Entry - ADMIN</title>
-</head>
-<body>
-<form action="{{ url_for('entry_api.admin_entry') }}" method="POST">
-    <h3>Designate a User as an Admin:</h3>
-    <p>UID - id for user to specify (must exist in USER table)</p>
-    <select name="uid">
-        {% for user in users %}
-            <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
-        {% endfor %}
-    </select>
-    <p>position - admin position</p>
-    <input type="text" name="position"/>
-    <p>Add Admin: <input type="submit" value="Submit"/></p>
-    {% if message is not none %}
-        <p>Result: {{ message }}</p>
-    {% endif %}
-</form>
-</body>
-</html>
+{% extends 'layout.html' %}
+{% block body %}
+    <form action="{{ url_for('entry_api.admin_entry') }}" method="POST">
+        <h3>Designate a User as an Admin:</h3>
+        <p>UID - id for user to specify (must exist in USER table)</p>
+        <select name="uid">
+            {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>position - admin position</p>
+        <input type="text" name="position"/>
+        <p>Add Admin: <input type="submit" value="Submit"/></p>
+        {% if message is not none %}
+            <p>Result: {{ message }}</p>
+        {% endif %}
+    </form>
+{% endblock %}
