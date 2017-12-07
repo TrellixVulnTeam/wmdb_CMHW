@@ -24,3 +24,4 @@ def add_header(response):
 
 if __name__ == '__main__':
     app.run()
+    app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024

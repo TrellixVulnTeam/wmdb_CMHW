@@ -6,6 +6,9 @@ import re
 from datetime import datetime
 from validate_email import validate_email
 from flask import Blueprint, render_template, abort, request
+from werkzeug.utils import secure_filename
+
+global POSTER_DIR
 
 entry_api = Blueprint('entry_api', __name__)
 
@@ -15,6 +18,14 @@ db_connection = sqlite3.connect(
         'ym.db'
     )
 )
+
+POSTER_DIR = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    'static',
+    'posters'
+)
+
+ALLOWED_EXTENSIONS = {'png',}
 
 
 def check_user():
@@ -563,11 +574,72 @@ def acted_entry():
     return render_template('entry/acted.html')
 
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 @entry_api.route("/entry/poster", methods=['POST', 'GET'])
 def poster_entry():
+    """
+    Handle file uploads for poster data entry. POST request must contain fields mid and img. mid must be present in
+    movies relation and img must be an openable image file.
+    :return:
+    """
+    # check for authorization
     if not check_user():
+        # abort if unauthorized
         abort(403)
-    return render_template('entry/poster.html')
+    # get the list of movies for dropdown
+    curs = db_connection.cursor()
+    curs.execute('SELECT MID, title FROM MOVIE')
+    movies = curs.fetchall()
+    if request.method == 'GET':
+        # handle get requests with blank message and movie dropdown
+        return render_template('entry/poster.html', movies=movies, message=None, image_name=None)
+    elif request.method == 'POST':
+        # handle post requests as upload
+        try:
+            # try to get field and file
+            mid = request.form['mid']
+            img = request.form['img']
+        except KeyError:
+            # show error if file not uploaded, or form data bad
+            message = 'bad form data'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+        if not re.match(r'[0-9]+', mid):
+            # test for mid being strictly numeric
+            message = 'mid must be numeric'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+        # check for file validity
+        if img.filename == '':
+            # show error for empty filename
+            message = 'no file selected'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+        try:
+            # create new filename
+            filename = str(mid) + '.png'
+            # try to enter new filename in database
+            cur = db_connection.cursor()
+            cur.execute('REPLACE INTO POSTER VALUES (?, ?)', (mid, filename))
+        except sqlite3.Error as err:
+            # should update if exists, so this is a real problem
+            db_connection.rollback()
+            # show error message on bad value
+            message = 'error inserting tuple (' + str(err) + ')'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+        if img and allowed_file(img.filename):
+            # save the file
+            img.save(os.path.join(POSTER_DIR, filename))
+            # show success message
+            message = 'successfully added poster file for movie id: ' + str(mid)
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=filename), 201
+        else:
+            # image not allowed
+            message = 'file must be png'
+            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+    else:
+        # if not get or post, abort (should never happen, but just in case)
+        abort(405)
 
 
 @entry_api.route("/entry/bulk", methods=['GET', 'POST'])
