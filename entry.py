@@ -25,8 +25,6 @@ POSTER_DIR = os.path.join(
     'posters'
 )
 
-ALLOWED_EXTENSIONS = {'png',}
-
 
 def check_user():
     return True
@@ -574,16 +572,12 @@ def acted_entry():
     return render_template('entry/acted.html')
 
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 @entry_api.route("/entry/poster", methods=['POST', 'GET'])
 def poster_entry():
     """
     Handle file uploads for poster data entry. POST request must contain fields mid and img. mid must be present in
     movies relation and img must be an openable image file.
-    :return:
+    :return: rendered template including list of movies ids
     """
     # check for authorization
     if not check_user():
@@ -610,6 +604,7 @@ def poster_entry():
             # show error if file not uploaded, or form data bad
             message = 'bad form data'
             return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+        # TODO: check file type (not just extension)
         if not re.match(r'[0-9]+', mid):
             # test for mid being strictly numeric
             message = 'mid must be numeric'
@@ -651,7 +646,98 @@ def poster_entry():
 
 @entry_api.route("/entry/bulk", methods=['GET', 'POST'])
 def bulk_entry():
+    """
+    Handler for bulk entry. Post requests must upload a csv file with the correct format for the specified relation.
+    Does not allow bulk loading of poster data.
+    :return:
+    """
+    # check user authorization
     if not check_user():
+        # abort if unauthorized
         abort(403)
-    abort(501)
-    return render_template('entry/bulk.html')
+    if request.method == 'GET':
+        # get requests just get the form
+        return render_template('entry/bulk.html', message=None)
+    elif request.method == 'POST':
+        # handle posts as data entry
+        if 'csv_data' not in request.files:
+            # show error if no file in post data
+            message = 'no file uploaded'
+            return render_template('entry/poster.html', message=message), 400
+        try:
+            # try to get form data
+            relation = request.form['relation']
+            csv_data = request.files['csv_data']
+        except KeyError:
+            # show error for bad form
+            message = 'bad form data'
+            return render_template('entry/bulk.html', message=message), 400
+        # TODO: check file type (not just extension)
+        try:
+            # try to call bulk helper function for correct relation
+            if relation == 'user':
+                message = bulk_user(csv_data)
+            elif relation == 'admin':
+                message = bulk_admin(csv_data)
+            elif relation == 'director':
+                message = bulk_director(csv_data)
+            elif relation == 'actor':
+                message = bulk_actor(csv_data)
+            elif relation == 'movie':
+                message = bulk_movie(csv_data)
+            elif relation == 'review':
+                message = bulk_review(csv_data)
+            elif relation == 'acted_in':
+                message = bulk_acted(csv_data)
+            else:
+                # if not one of predefined relations, error
+                raise RuntimeError('Invalid Relation')
+            # if we reach this point, success
+            return render_template('entry/bulk.html', message=message), 201
+        except RuntimeError as err:
+            # catch the thrown runtime error if parsing is bad
+            if err.args is None:
+                # not our error
+                raise err
+            if err.args[0] == 'Invalid Relation':
+                # set error message for invalid relation
+                message = 'invalid relation'
+            elif err.args[0] == 'Parse Error':
+                # set error message for parsing error
+                message = 'unable to parse file'
+            else:
+                # if neither of these, then don't handle the error
+                raise err
+            # display error message (if handled)
+            return render_template('entry/bulk.html', message=message), 400
+    else:
+        # if not get or post, abort (should never happen, but just in case)
+        abort(405)
+
+
+def bulk_user(file):
+    return "user not implemented"
+
+
+def bulk_admin(file):
+    return "admin not implemented"
+
+
+def bulk_director(file):
+    return "director not implemented"
+
+
+def bulk_actor(file):
+    return "actor not implemented"
+
+
+def bulk_movie(file):
+    return "movie not implemented"
+
+
+def bulk_review(file):
+    return "review not implemented"
+
+
+def bulk_acted(file):
+    return "acted_in not implemented"

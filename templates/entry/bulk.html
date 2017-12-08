@@ -1,4 +1,23 @@
 {% extends 'layout.html' %}
 {% block body %}
-
+    <form action="{{ url_for('entry_api.bulk_entry') }}" method="POST" enctype=multipart/form-data>
+        <h3>Upload a Bulk Data File:</h3>
+        <p>NOTE: you cannot bulk load poster data</p>
+        <p>RELATION - name of relation to enter data</p>
+        <select name="relation">
+            <option value="user">USER</option>
+            <option value="admin">ADMIN</option>
+            <option value="director">DIRECTOR</option>
+            <option value="actor">ACTOR</option>
+            <option value="movie">MOVIE</option>
+            <option value="review">REVIEW</option>
+            <option value="acted_in">ACTED_IN</option>
+        </select>
+        <p>csv_data - csv file containing tuples to enter</p>
+        <input type=file name=csv_data>
+        <p>Upload Bulk Data: <input type="submit" value="Upload"/></p>
+        {% if message is not none %}
+            <p>Result: {{ message }}</p>
+        {% endif %}
+    </form>
 {% endblock %}
