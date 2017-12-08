@@ -1,28 +1,33 @@
 <!DOCTYPE html><!doctype html>
 <html>
-   <body>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<body>
 
-      <table border = 1>
-         <thead>
-            <td>MID</td>
-            <td>UID</td>
-            <td>Text</td>
-            <td>Rating</td>
-            <td>Created Date</td>
-         </thead>
+{{ pagination.info }}
+{{ pagination.links }}
 
-         {% for row in rows %}
-            <tr>
-               <td>{{row["MID"]}}</td>
-               <td>{{row["UID"]}}</td>
-               <td> {{ row["text"]}}</td>
-               <td>{{row["rating"]}}</td>
-                <td>{{row["created_date"]}}</td>
-            </tr>
-         {% endfor %}
-      </table>
+<table border=1>
+    <thead>
+    <td>MID</td>
+    <td>UID</td>
+    <td>Text</td>
+    <td>Rating</td>
+    <td>Created Date</td>
+    </thead>
 
-      <a href = "/">Go back to home page</a>
+    {% for row in rows %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td>{{ row[3] }}</td>
+            <td>{{ row[4] }}</td>
+        </tr>
+    {% endfor %}
+</table>
+{{ pagination.links }}
 
-   </body>
+<a href="/">Go back to home page</a>
+
+</body>
 </html>
