@@ -1,7 +1,6 @@
-<!DOCTYPE html><!doctype html>
-<html>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-<body>
+{% extends 'layout.html' %}
+{% block body %}
+
 
 {{ pagination.info }}
 {{ pagination.links }}
@@ -26,5 +25,4 @@
 
 <a href="/">Go back to home page</a>
 
-</body>
-</html>
+{% endblock %}
