@@ -17,7 +17,7 @@ db_connection = sqlite3.connect(
 
 @browse_api.route("/browse")
 def browse_index():
-    return "browse index"
+    return render_template('browse/index.html')
 
 
 @browse_api.route("/browse/user")

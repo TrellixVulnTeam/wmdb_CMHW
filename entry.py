@@ -626,7 +626,7 @@ def poster_entry():
             # show error message on bad value
             message = 'error inserting tuple (' + str(err) + ')'
             return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
-        if img and allowed_file(img.filename):
+        if img:
             # save the file
             img.save(os.path.join(POSTER_DIR, filename))
             # get the tuple

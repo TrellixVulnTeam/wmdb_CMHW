@@ -1,26 +1,26 @@
 {% extends 'layout.html' %}
 {% block body %}
 
-{{ pagination.info }}
-{{ pagination.links }}
+    {{ pagination.info }}
+    {{ pagination.links }}
 
-<table border=1>
-    <thead>
-    <td>UID</td>
-    <td>Name</td>
-    <td>Email</td>
-    <td>Created Date</td>
-    </thead>
+    <table border=1>
+        <thead>
+        <td>UID</td>
+        <td>Name</td>
+        <td>Email</td>
+        <td>Created Date</td>
+        </thead>
 
-    {% for row in rows %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-        </tr>
-    {% endfor %}
-</table>
-{{ pagination.links }}
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {{ pagination.links }}
 
 {% endblock %}
