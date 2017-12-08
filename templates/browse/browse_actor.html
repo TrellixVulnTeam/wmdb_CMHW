@@ -1,28 +1,29 @@
 {% extends 'layout.html' %}
 {% block body %}
+    <h2>Table of Actors</h2>
+    <p>This table lists the User ID, their Stage Name, Given name, and Birthday for each Actor.</p>
 
+    {{ pagination.info }}
+    {{ pagination.links }}
+    <table border=1>
+        <thead>
+        <td>UID</td>
+        <td>Stage Name</td>
+        <td>Given Name</td>
+        <td>Date of Birth</td>
+        </thead>
 
-{{ pagination.info }}
-{{ pagination.links }}
-<table border=1>
-    <thead>
-    <td>UID</td>
-    <td>Stage Name</td>
-    <td>Given Name</td>
-    <td>Date of Birth</td>
-    </thead>
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {{ pagination.links }}
 
-    {% for row in rows %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-        </tr>
-    {% endfor %}
-</table>
-{{ pagination.links }}
-
-<a href="/">Go back to home page</a>
+    <a href="/">Go back to home page</a>
 
 {% endblock %}

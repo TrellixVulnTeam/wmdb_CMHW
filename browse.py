@@ -87,7 +87,7 @@ def browse_actor():
 
 
 @browse_api.route("/browse/movie")
-def browse_moive():
+def browse_movie():
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("select * from MOVIE")
