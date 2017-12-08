@@ -1,0 +1,25 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <form action="{{ url_for('entry_api.acted_entry') }}" method="POST">
+        <h3>Add a New Actor - Movie Role:</h3>
+        <p>Note: will fail if MID, UID combination already exists.</p>
+        <p>MID - movie id (of movie that this actor had a role in)</p>
+        <select name="mid">
+            {% for movie in movies %}
+                <option value="{{ movie[0] }}">{{ movie[0] }} - {{ movie[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>UID - actor who played this roll</p>
+        <select name="uid">
+            {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>character_role - name of the role played by this actor in this movie</p>
+        <input type="text" name="character_role"/>
+        <p>Add Role: <input type="submit" value="Submit"/></p>
+        {% if message is not none %}
+            <p>Result: {{ message }}</p>
+        {% endif %}
+    </form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h2>Data Entry</h2>
+    <p>This section is for manual data entry. Click on any relation to access it's data entry interface.</p>
+    <table>
+        <tr>
+            <td><a href="{{ url_for('entry_api.user_entry') }}">USER</a></td>
+            <td><u>UID</u>, u_name, email, created_date</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.admin_entry') }}">ADMIN</a></td>
+            <td><u>UID</u>, position</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.director_entry') }}">DIRECTOR</a></td>
+            <TD><u>UID</u>, famous_for_MID, given_name, DoB</TD>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.actor_entry') }}">ACTOR</a></td>
+            <td><u>UID</u>, stage_name, given_name, DoB</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.movie_entry') }}">MOVIE</a></td>
+            <td><u>MID</u>, director_UID, title, release_date, entered_by, entered_date</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.review_entry') }}">REVIEW</a></td>
+            <td><u>MID, UID</u>, text, rating, created_date</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.acted_entry') }}">ACTED_IN</a></td>
+            <td><u>MID, UID</u>, character_role</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('entry_api.poster_entry') }}">POSTER</a></td>
+            <td><u>MID</u>, img</td>
+        </tr>
+    </table>
+    <p><a href="{{ url_for('entry_api.bulk_entry') }}">Bulk Loading Interface</a></p>
+{% endblock %}

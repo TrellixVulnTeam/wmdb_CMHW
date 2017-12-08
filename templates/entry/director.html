@@ -1,0 +1,27 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <form action="{{ url_for('entry_api.director_entry') }}" method="POST">
+        <h3>Designate a User as a Director:</h3>
+        <p>UID - id for user to specify (must exist in USER table)</p>
+        <select name="uid">
+            {% for user in users %}
+                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>famous_for_MID - id specifying if a movie made this actor famous</p>
+        <select name="mid">
+            <option value="NULL">None</option>
+            {% for movie in movies %}
+                <option value="{{ movie[0] }}">{{ movie[0] }} - {{ movie[1] }}</option>
+            {% endfor %}
+        </select>
+        <p>given_name - director's given name</p>
+        <input type="text" name="given_name"/>
+        <p>DoB - date of birth</p>
+        <input type="date" name="dob"/>
+        <p>Add Director: <input type="submit" value="Submit"/></p>
+        {% if message is not none %}
+            <p>Result: {{ message }}</p>
+        {% endif %}
+    </form>
+{% endblock %}
