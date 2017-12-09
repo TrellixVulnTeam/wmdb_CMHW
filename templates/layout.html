@@ -5,11 +5,12 @@
     <h1>CS 564 - Your Movie Database</h1>
     <div class=metanav>
         <p>
-        {% if not session.logged_in %}
-            <a href="{{ url_for('login') }}">log in</a>
-        {% else %}
-            <a href="{{ url_for('logout') }}">log out</a>
-        {% endif %}
+            {% if not session.logged_in %}
+                <a href="{{ url_for('accounts_api.login') }}">log in</a>
+                <a href="{{ url_for('accounts_api.signup') }}">sign up</a>
+            {% else %}
+                <a href="{{ url_for('accounts_api.logout') }}">log out</a>
+            {% endif %}
         </p>
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('browse_api.browse_index') }}">Browsing</a>
