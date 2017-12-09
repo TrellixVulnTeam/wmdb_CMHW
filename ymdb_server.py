@@ -1,4 +1,5 @@
-from flask import Flask, flash, redirect, render_template, request, session, abort
+from flask import Flask, render_template
+
 
 from browse import browse_api
 from entry import entry_api
@@ -23,5 +24,5 @@ def add_header(response):
 
 
 if __name__ == '__main__':
-    app.run()
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    app.run()
