@@ -1,33 +1,34 @@
 {% extends 'layout.html' %}
 {% block body %}
+    <h2>Table of Movies</h2>
+    <p>This table lists the Movie ID, Director ID, Title, Release Date, Who entered the movie, and Date Entered for each Movie.</p>
 
+    {{ pagination.info }}
+    {{ pagination.links }}
 
-{{ pagination.info }}
-{{ pagination.links }}
+    <table border=1>
+        <thead>
+        <td>MID</td>
+        <td>Director UID</td>
+        <td>Title</td>
+        <td>Release Date</td>
+        <td>Entered By</td>
+        <td>Entered Date</td>
+        </thead>
 
-<table border=1>
-    <thead>
-    <td>MID</td>
-    <td>Director UID</td>
-    <td>Title</td>
-    <td>Release Date</td>
-    <td>Entered By</td>
-    <td>Entered Date</td>
-    </thead>
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td>{{ row[3] }}</td>
+                <td>{{ row[4] }}</td>
+                <td>{{ row[5] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {{ pagination.links }}
 
-    {% for row in rows %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td>{{ row[3] }}</td>
-            <td>{{ row[4] }}</td>
-            <td>{{ row[5] }}</td>
-        </tr>
-    {% endfor %}
-</table>
-{{ pagination.links }}
-
-<a href="/">Go back to home page</a>
+    <a href="/">Go back to home page</a>
 
 {% endblock %}

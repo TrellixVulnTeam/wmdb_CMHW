@@ -1,25 +1,26 @@
 {% extends 'layout.html' %}
 {% block body %}
+    <h2>Table of Admins</h2>
+    <p>This table lists the User ID and their Position in the database for each Admin.</p>
 
+    {{ pagination.info }}
+    {{ pagination.links }}
 
-{{ pagination.info }}
-{{ pagination.links }}
+    <table border=1>
+        <thead>
+        <td>UID</td>
+        <td>Position</td>
+        </thead>
 
-<table border=1>
-    <thead>
-    <td>UID</td>
-    <td>Position</td>
-    </thead>
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
 
-    {% for row in rows %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-        </tr>
-    {% endfor %}
-</table>
-
-<a href="/">Go back to home page</a>
-{{ pagination.links }}
+    <a href="/">Go back to home page</a>
+    {{ pagination.links }}
 
 {% endblock %}
