@@ -1,6 +1,7 @@
 from flask import Flask, render_template
 
 from browse import browse_api
+from db_connection import db_connection
 from entry import entry_api
 from search import search_api
 
@@ -22,5 +23,8 @@ def add_header(response):
 
 
 if __name__ == '__main__':
+    # enable foreign key on all database connections
+    db_connection.execute('PRAGMA foreign_keys = ON')
+
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     app.run()

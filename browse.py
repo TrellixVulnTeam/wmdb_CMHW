@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template
 from flask_paginate import Pagination, get_page_args
 
-from db_connection import get_db_connection
+from db_connection import db_connection
 
 browse_api = Blueprint('browse_api', __name__)
 
@@ -13,8 +13,7 @@ def browse_index():
 
 @browse_api.route("/browse/user")
 def browse_user():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM USER")
 
@@ -23,7 +22,7 @@ def browse_user():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
+    cur.close()
     return render_template('browse/browse_user.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -32,8 +31,7 @@ def browse_user():
 
 @browse_api.route("/browse/admin")
 def browse_admin():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ADMIN")
 
@@ -41,7 +39,7 @@ def browse_admin():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
+    cur.close()
     return render_template('browse/browse_admin.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -50,8 +48,7 @@ def browse_admin():
 
 @browse_api.route("/browse/director")
 def browse_director():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM DIRECTOR")
 
@@ -59,7 +56,7 @@ def browse_director():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
+    cur.close()
     return render_template('browse/browse_director.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -68,8 +65,7 @@ def browse_director():
 
 @browse_api.route("/browse/actor")
 def browse_actor():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ACTOR")
 
@@ -77,7 +73,6 @@ def browse_actor():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
     return render_template('browse/browse_actor.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -86,8 +81,7 @@ def browse_actor():
 
 @browse_api.route("/browse/movie")
 def browse_movie():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM MOVIE")
 
@@ -95,7 +89,6 @@ def browse_movie():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
     return render_template('browse/browse_movie.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -104,8 +97,7 @@ def browse_movie():
 
 @browse_api.route("/browse/review")
 def browse_review():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM REVIEW")
 
@@ -113,7 +105,6 @@ def browse_review():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
     return render_template('browse/browse_review.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -122,8 +113,7 @@ def browse_review():
 
 @browse_api.route("/browse/acted_in")
 def browse_acted_in():
-    conn = get_db_connection(False)
-    cur = conn.cursor()
+    cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ACTED_IN")
 
@@ -131,8 +121,23 @@ def browse_acted_in():
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    conn.close()
     return render_template('browse/browse_acted_in.html',
+                           rows=rows_limited,
+                           pagination=pagination,
+                           )
+
+
+@browse_api.route("/browse/poster")
+def browse_poster():
+    cur = db_connection.cursor()
+    page, per_page, offset = get_page_args()
+    cur.execute("SELECT * FROM POSTER")
+
+    rows = cur.fetchall()
+    rows_limited = rows[offset:(per_page + offset)]
+    pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
+
+    return render_template('browse/poster.html',
                            rows=rows_limited,
                            pagination=pagination,
                            )

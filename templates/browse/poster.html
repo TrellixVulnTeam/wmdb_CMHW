@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h2>Table of Posters</h2>
+    <p>This table lists the MID poster for each movie that has a poster in the database.</p>
+    {{ pagination.info }}
+    {{ pagination.links }}
+
+    <table border=1>
+        <thead>
+        <td>MID</td>
+        <td>Poster</td>
+        </thead>
+
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td><img src="{{ url_for('static', filename='posters/' + row[1]) }}" alt="poster"/></td>
+            </tr>
+        {% endfor %}
+    </table>
+    {{ pagination.links }}
+
+{% endblock %}
