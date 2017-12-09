@@ -1,12 +1,14 @@
+import csv
 import sqlite3
 import os
 
 import re
 
 from datetime import datetime
+from io import TextIOWrapper
+
 from validate_email import validate_email
 from flask import Blueprint, render_template, abort, request
-from werkzeug.utils import secure_filename
 
 global POSTER_DIR
 
@@ -667,7 +669,7 @@ def bulk_entry():
         try:
             # try to get form data
             relation = request.form['relation']
-            csv_data = request.files['csv_data']
+            csv_data = TextIOWrapper(request.files['csv_data'], encoding='utf-8')
         except KeyError:
             # show error for bad form
             message = 'bad form data'
@@ -691,32 +693,71 @@ def bulk_entry():
                 message = bulk_acted(csv_data)
             else:
                 # if not one of predefined relations, error
-                raise RuntimeError('Invalid Relation')
+                message = 'invalid relation'
+                return render_template('entry/bulk.html', message=message), 400
             # if we reach this point, success
             return render_template('entry/bulk.html', message=message), 201
-        except RuntimeError as err:
-            # catch the thrown runtime error if parsing is bad
-            if err.args is None:
-                # not our error
-                raise err
-            if err.args[0] == 'Invalid Relation':
-                # set error message for invalid relation
-                message = 'invalid relation'
-            elif err.args[0] == 'Parse Error':
-                # set error message for parsing error
-                message = 'unable to parse file'
-            else:
-                # if neither of these, then don't handle the error
-                raise err
-            # display error message (if handled)
+        except sqlite3.Error as err:
+            # catch sql error from bulk entry
+            message = 'rollback due to sql error: ' + str(err)
+            # display error message
+            return render_template('entry/bulk.html', message=message), 400
+        except KeyError as err:
+            # catch key error for bad csv data
+            message = 'bad csv data (key error): ' + str(err)
+            # display error message
             return render_template('entry/bulk.html', message=message), 400
     else:
         # if not get or post, abort (should never happen, but just in case)
         abort(405)
 
 
+def bulk_connection():
+    """
+    Get a connection to the database that doesn't have autocommit (so we can do transactions manually)
+    :return: non-auto-commit connection to database
+    """
+    conn = sqlite3.connect(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'ym.db'
+        )
+    )
+    # isolation level of none allows us to commit by ourselves
+    conn.isolation_level = None
+    return conn
+
+
 def bulk_user(file):
-    return "user not implemented"
+    # create the dictionary from csv file
+    dict_reader = csv.DictReader(file)
+    tuples = [(entry['u_name'], entry['email']) for entry in dict_reader]
+    # make sure all emails are actually emails
+    for t in tuples:
+        if not validate_email(t[1]):
+            raise KeyError('email not email')
+    # get a connection without isolation level or autocommit
+    c = bulk_connection()
+    # try to enter the data
+    try:
+        curs = c.cursor()
+        # start transaction (so we can rollback if any entries fail
+        curs.execute("BEGIN")
+        # try to insert all the users
+        curs.executemany("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", tuples)
+        # get the number of rows affected
+        num_rows = curs.rowcount
+        # commit the changes
+        curs.execute('COMMIT')
+        # close the connection
+        c.close()
+        # return the success message
+        return 'bulk user entry success, inserted ' + str(num_rows) + ' rows'
+    except sqlite3.Error as err:
+        # rollback changes, close the connection, then pass the error onto caller
+        curs.execute('ROLLBACK')
+        c.close()
+        raise err
 
 
 def bulk_admin(file):
