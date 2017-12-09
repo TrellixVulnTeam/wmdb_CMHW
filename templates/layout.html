@@ -5,7 +5,7 @@
     <h1>CS 564 - Your Movie Database</h1>
     <div class=metanav>
         <p>
-            {% if not session.logged_in %}
+            {% if 'uid' not in session %}
                 <a href="{{ url_for('accounts_api.login') }}">log in</a>
                 <a href="{{ url_for('accounts_api.signup') }}">sign up</a>
             {% else %}

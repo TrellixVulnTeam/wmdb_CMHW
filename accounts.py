@@ -1,7 +1,10 @@
+import sqlite3
 from datetime import datetime
 
 import bcrypt
-from flask import Blueprint, request, abort, render_template, session, redirect, url_for
+import re
+from flask import Blueprint, request, abort, render_template, session, redirect, url_for, current_app
+from validate_email import validate_email
 
 from db_connection import db_connection
 
@@ -41,11 +44,12 @@ def login():
         # have user info, check password
         uid, u_name, pass_hash = uid_rows[0]
         # using bcrypt to store passwords (see account creation page)
-        if bcrypt.checkpw(password, pass_hash):
+        if bcrypt.checkpw(password.encode('utf-8'), pass_hash):
             # password match, set session variables
             session['uid'] = uid
             session['u_name'] = u_name
             session['login_time'] = datetime.now()
+            session.logged_in = True
             return redirect(url_for('index'))
         else:
             # password didn't match
@@ -66,10 +70,73 @@ def logout():
     session.pop('uid', None)
     session.pop('u_name', None)
     session.pop('login_time', None)
+    session.logged_in = False
     # redirect to login page
     return redirect(url_for('accounts_api.login'))
 
 
-@accounts_api.route('/signup')
+@accounts_api.route('/signup', methods=['POST', 'GET'])
 def signup():
-    return redirect(url_for('index'))
+    if request.method == 'GET':
+        # get requests server signup page
+        return render_template('accounts/signup.html', message=None)
+    elif request.method == 'POST':
+        # post requests create account
+        # try to get each parameter
+        try:
+            # get the username field if it's there
+            username = request.form['username']
+            # get the email if exists
+            email = request.form['email']
+            # get password from form
+            password = request.form['password']
+            # get repassword from form
+            repassword = request.form['repassword']
+        except KeyError as err:
+            # bad form if any key not present
+            message = 'bad form data, missing ' + str(err)
+            return render_template('accounts/signup.html', message=message), 400
+        if not re.match(r'[a-zA-Z0-9_]+', username) or len(username) > 20:
+            # bad username
+            message = 'username must only contain alphanumeric and underscore characters, less than 20 long'
+            return render_template('accounts/signup.html', message=message), 400
+        if not validate_email(email):
+            # bad email
+            message = 'invalid email format'
+            return render_template('accounts/signup.html', message=message), 400
+        if len(password) < 12:
+            # short password
+            # TODO: make better password requirements
+            message = 'password must be at least 12 characters long'
+            return render_template('accounts/signup.html', message=message), 400
+        if password != repassword:
+            # passwords don't match
+            message = 'passwords do not match'
+            return render_template('accounts/signup.html', message=message), 400
+        # all fields validated, check for existing username or email
+        curs = db_connection.cursor()
+        curs.execute('SELECT UID FROM USER WHERE u_name==? OR email==?', (username, email))
+        existing = curs.fetchall()
+        if len(existing) != 0:
+            # email or username already in database
+            message = 'username or email is already taken'
+            return render_template('accounts/signup.html', message=message), 400
+        # username and email are good, add user
+        try:
+            # don't commit until user and password are set
+            curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (username, email))
+            uid = curs.lastrowid
+            curs.execute('INSERT INTO PASSWORD VALUES (?, ?)',
+                         (uid, bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())))
+            db_connection.commit()
+            session['uid'] = uid
+            session['u_name'] = username
+            session['login_time'] = datetime.now()
+            session.logged_in = True
+            return redirect(url_for('index'))
+        except sqlite3.Error as err:
+            # couldn't insert, rollback and log issue
+            db_connection.rollback()
+            current_app.logger.info('failure to insert new user: ' + str(err))
+            message = 'could not create account'
+            return render_template('accounts/signup.html', message=message), 400
