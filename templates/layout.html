@@ -4,13 +4,19 @@
 <div class=page>
     <h1>CS 564 - Your Movie Database</h1>
     <div class=metanav>
+        <p>
+        {% if not session.logged_in %}
+            <a href="{{ url_for('login') }}">log in</a>
+        {% else %}
+            <a href="{{ url_for('logout') }}">log out</a>
+        {% endif %}
+        </p>
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('browse_api.browse_index') }}">Browsing</a>
         <a href="{{ url_for('entry_api.entry_index') }}">Data Entry</a>
     </div>
     <p>This is a web interface to project database: Your Movie Database (YMDB). It contains information on movies,
-        actors,
-        directors, and user reviews. Here is the schema for the underlying database:</p>
+        actors, directors, and user reviews. Here is the schema for the underlying database:</p>
     <table>
         <tr>
             <td>USER</td>
