@@ -21,7 +21,9 @@ INSERT INTO USER VALUES (5, 'mfreeman', 'mfreeman@gmail.com', strftime('%s', 'no
 INSERT INTO ACTOR VALUES (5, 'Morgan Freeman', 'Morgan Freeman Jr.', strftime('%s', '1937-06-01'));
 INSERT INTO ACTED_IN VALUES (0, 5, 'Ellis Boyd ''Red'' Redding');
 /* this movie made him famous: */
-UPDATE DIRECTOR SET famous_for_MID = 0 WHERE UID = 3;
+UPDATE DIRECTOR
+SET famous_for_MID = 0
+WHERE UID = 3;
 
 /* add second movie */
 /* director first: */
@@ -56,34 +58,36 @@ INSERT INTO ACTED_IN VALUES (3, 10, 'The Narrator');
 
 /* add fifth movie */
 /* director first: */
-INSERT INTO USER VALUES (11,'tarantino', 'tarantino@gmail.com', strftime('%s', 'now'));
+INSERT INTO USER VALUES (11, 'tarantino', 'tarantino@gmail.com', strftime('%s', 'now'));
 INSERT INTO DIRECTOR VALUES (11, NULL, 'Quentin Tarantino', strftime('%s', '1963-03-27'));
 /* then movie */
 INSERT INTO MOVIE VALUES (4, 11, 'Pulp Fiction', strftime('%s', '1994-10-14'), 0, strftime('%s', 'now'));
 /* now actor 1 */
-INSERT INTO USER VALUES (12,'roth', 'roth@gmail.com', strftime('%s', 'now'));
+INSERT INTO USER VALUES (12, 'roth', 'roth@gmail.com', strftime('%s', 'now'));
 INSERT INTO ACTOR VALUES (12, 'Tim Roth', 'Timothy Simon Roth', strftime('%s', '1961-05-14'));
 INSERT INTO ACTED_IN VALUES (4, 12, 'Pumpkin');
 
 /* add sixth movie */
 /* director first: */
-INSERT INTO USER VALUES (13,'jackson', 'jackson@gmail.com', strftime('%s', 'now'));
+INSERT INTO USER VALUES (13, 'jackson', 'jackson@gmail.com', strftime('%s', 'now'));
 INSERT INTO DIRECTOR VALUES (13, NULL, 'Peter Jackson', strftime('%s', '1961-10-31'));
 /* then movie */
-INSERT INTO MOVIE VALUES (5, 13, 'The Lord of the Rings: The Return of the King', strftime('%s', '2003-12-17'),  0, strftime('%s', 'now'));
+INSERT INTO MOVIE
+VALUES (5, 13, 'The Lord of the Rings: The Return of the King', strftime('%s', '2003-12-17'), 0, strftime('%s', 'now'));
 /* now actor 1 */
-INSERT INTO USER VALUES (14, 'bloom', 'bloom@gmail.com',  strftime('%s', 'now'));
+INSERT INTO USER VALUES (14, 'bloom', 'bloom@gmail.com', strftime('%s', 'now'));
 INSERT INTO ACTOR VALUES (14, 'Orlando Bloom', 'Orlando Jonathan Blanchard Bloom', strftime('%s', '1977-01-13'));
 INSERT INTO ACTED_IN VALUES (5, 14, 'Pumpkin');
 
 /* add seventh movie */
 /* director first */
-INSERT INTO USER VALUES (15,'leone', 'leone@gmail.com',  strftime('%s', 'now'));
+INSERT INTO USER VALUES (15, 'leone', 'leone@gmail.com', strftime('%s', 'now'));
 INSERT INTO DIRECTOR VALUES (15, NULL, 'Sergio Leone', strftime('%s', '1929-01-03'));
 /* then movie */
-INSERT INTO MOVIE VALUES (6, 15, 'The Good, the Bad and the Ugly ', strftime('%s', '1967-12-29'),  0, strftime('%s', 'now'));
+INSERT INTO MOVIE
+VALUES (6, 15, 'The Good, the Bad and the Ugly ', strftime('%s', '1967-12-29'), 0, strftime('%s', 'now'));
 /* now actor 1 */
-INSERT INTO USER VALUES (16,'eastwood', 'eastwood@gmail.com',  strftime('%s', 'now'));
+INSERT INTO USER VALUES (16, 'eastwood', 'eastwood@gmail.com', strftime('%s', 'now'));
 INSERT INTO ACTOR VALUES (16, 'Clint Eastwood', 'Clint Eastwood Jr.', strftime('%s', '1930-05-31'));
 INSERT INTO ACTED_IN VALUES (6, 16, 'Blondie');
 
@@ -141,7 +145,8 @@ INSERT INTO ACTOR VALUES (27, 'Ben Kingsley', 'Krishna Pandit Bhanji', strftime(
 INSERT INTO ACTED_IN VALUES (9, 27, 'Itzhak Stern');
 /* now actor 3 */
 INSERT INTO USER VALUES (28, 'fiennes', 'fiennes@ymdb.com', strftime('%s', 'now'));
-INSERT INTO ACTOR VALUES (28, 'Ralph Fiennes', 'Ralph Nathaniel Twisleton-Wykeham-Fiennes', strftime('%s', '1962-12-22'));
+INSERT INTO ACTOR
+VALUES (28, 'Ralph Fiennes', 'Ralph Nathaniel Twisleton-Wykeham-Fiennes', strftime('%s', '1962-12-22'));
 INSERT INTO ACTED_IN VALUES (9, 28, 'Amon Goeth');
 
 /* add eleventh movie */
@@ -149,9 +154,9 @@ INSERT INTO ACTED_IN VALUES (9, 28, 'Amon Goeth');
 INSERT INTO USER VALUES (29, 'zemeckis', 'zemeckis@ymdb.com', strftime('%s', 'now'));
 INSERT INTO DIRECTOR VALUES (29, NULL, 'Robert Zemeckis', strftime('%s', '1952-05-14'));
 /* then movie */
-INSERT INTO MOVIE VALUES(10, 29, 'Forrest Gump', strftime('%s', '1994-07-06'), 0, strftime('%s', 'now'));
+INSERT INTO MOVIE VALUES (10, 29, 'Forrest Gump', strftime('%s', '1994-07-06'), 0, strftime('%s', 'now'));
 /* now actor 1 */
-INSERT INTO USER VALUES(30, 'thanks', 'thanks@ymdb.com', strftime('%s', 'now'));
+INSERT INTO USER VALUES (30, 'thanks', 'thanks@ymdb.com', strftime('%s', 'now'));
 INSERT INTO ACTOR VALUES (30, 'Tom Hanks', 'Thomas Jeffrey Hanks', strftime('%s', '1956-07-09'));
 INSERT INTO ACTED_IN VALUES (9, 30, 'Forrest Gump');
 /* now a fake actor with the same birthdate as tom hanks */

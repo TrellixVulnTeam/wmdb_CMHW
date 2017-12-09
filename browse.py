@@ -1,5 +1,5 @@
+from flask import Blueprint, render_template
 from flask_paginate import Pagination, get_page_args
-from flask import Blueprint, render_template, request
 
 from db_connection import get_db_connection
 

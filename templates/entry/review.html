@@ -18,7 +18,7 @@
         <p>text - review text (must contain only alphanumeric characters and punctuation)</p>
         <input type="text" name="text"/>
         <p>rating - rating (from 0 to 5) for this review</p>
-        <input type="number" name="rating" min="0" max="5" />
+        <input type="number" name="rating" min="0" max="5"/>
         <p>Add Review: <input type="submit" value="Submit"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>

@@ -1,14 +1,12 @@
 import csv
-import sqlite3
 import os
-
 import re
-
+import sqlite3
 from datetime import datetime
 from io import TextIOWrapper
 
-from validate_email import validate_email
 from flask import Blueprint, render_template, abort, request
+from validate_email import validate_email
 
 from db_connection import get_db_connection
 

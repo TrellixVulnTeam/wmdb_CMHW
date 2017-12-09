@@ -1,10 +1,8 @@
 from flask import Flask, render_template
 
-
 from browse import browse_api
 from entry import entry_api
 from search import search_api
-
 
 app = Flask(__name__)
 app.register_blueprint(browse_api)

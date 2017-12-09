@@ -15,7 +15,7 @@
             <p>Result: {{ message }}</p>
         {% endif %}
         {% if image_name is not none %}
-            <img src="{{ url_for('static', filename='posters/' + image_name) }}" alt="poster" />
+            <img src="{{ url_for('static', filename='posters/' + image_name) }}" alt="poster"/>
         {% endif %}
     </form>
 {% endblock %}

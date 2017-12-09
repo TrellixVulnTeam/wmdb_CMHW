@@ -3,26 +3,26 @@
     <h2>Table of Roles Actors Played</h2>
     <p>This table lists the Movie ID, User ID, and their Role in the movie for each Actor.</p>
 
-{{ pagination.info }}
-{{ pagination.links }}
+    {{ pagination.info }}
+    {{ pagination.links }}
 
-<table border=1>
-    <thead>
-    <td>MID</td>
-    <td>UID</td>
-    <td>Role</td>
-    </thead>
+    <table border=1>
+        <thead>
+        <td>MID</td>
+        <td>UID</td>
+        <td>Role</td>
+        </thead>
 
-    {% for row in rows %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-        </tr>
-    {% endfor %}
-</table>
-{{ pagination.links }}
+        {% for row in rows %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {{ pagination.links }}
 
-<a href="/">Go back to home page</a>
+    <a href="/">Go back to home page</a>
 
 {% endblock %}
