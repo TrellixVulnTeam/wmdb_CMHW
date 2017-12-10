@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from flask_paginate import Pagination, get_page_args
 
+from accounts import check_moderator
 from db_connection import db_connection
 
 browse_api = Blueprint('browse_api', __name__)
@@ -13,6 +14,10 @@ def browse_index():
 
 @browse_api.route("/browse/user")
 def browse_user():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM USER")
@@ -31,6 +36,10 @@ def browse_user():
 
 @browse_api.route("/browse/admin")
 def browse_admin():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ADMIN")
@@ -48,6 +57,10 @@ def browse_admin():
 
 @browse_api.route("/browse/director")
 def browse_director():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM DIRECTOR")
@@ -65,6 +78,10 @@ def browse_director():
 
 @browse_api.route("/browse/actor")
 def browse_actor():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ACTOR")
@@ -97,6 +114,10 @@ def browse_movie():
 
 @browse_api.route("/browse/review")
 def browse_review():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM REVIEW")
@@ -113,6 +134,10 @@ def browse_review():
 
 @browse_api.route("/browse/acted_in")
 def browse_acted_in():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM ACTED_IN")
@@ -129,6 +154,10 @@ def browse_acted_in():
 
 @browse_api.route("/browse/poster")
 def browse_poster():
+    # check for user authorization
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
     cur.execute("SELECT * FROM POSTER")

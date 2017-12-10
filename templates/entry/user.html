@@ -6,6 +6,8 @@
         <input type="text" name="u_name"/>
         <p>email - user's email (must be unique)</p>
         <input type="email" name="email"/>
+        <p>password - user's password (not restricted by normal password constraints)</p>
+        <input type="password" name="password"/>
         <p>Add User: <input type="submit" value="Submit"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>

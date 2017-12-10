@@ -5,9 +5,11 @@ import sqlite3
 from datetime import datetime
 from io import TextIOWrapper
 
-from flask import Blueprint, render_template, abort, request
+import bcrypt
+from flask import Blueprint, render_template, abort, request, session, redirect, url_for
 from validate_email import validate_email
 
+from accounts import check_moderator, check_admin
 from db_connection import db_connection
 
 entry_api = Blueprint('entry_api', __name__)
@@ -17,10 +19,6 @@ POSTER_DIR = os.path.join(
     'static',
     'posters'
 )
-
-
-def check_user():
-    return True
 
 
 def unix_time(dt):
@@ -39,8 +37,9 @@ def entry_index():
     Display the default page for the entry interfaces.
     :return: rendered template of entry index page
     """
-    if not check_user():
-        abort(403)
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry'))
     return render_template('entry/index.html')
 
 
@@ -52,9 +51,9 @@ def user_entry():
     :return: rendered template of user entry page
     """
     # check that the user is allowed access to entry subsystem
-    if not check_user():
-        # abort if not allowed
-        abort(403)
+    if not check_admin():
+        # deny access if not admin
+        return redirect(url_for('accounts_api.forbidden', account_type='admin', resource='/entry/user'))
     # default empty message
     message = None
     if request.method == 'GET':
@@ -66,6 +65,7 @@ def user_entry():
             # get the username and email from the form
             u_name = request.form['u_name']
             email = request.form['email']
+            password = request.form['password']
         except KeyError:
             # respond with error if form entries are not available
             message = 'bad form data'
@@ -79,14 +79,21 @@ def user_entry():
             # validate the email format, error if not valid
             message = "invalid email format"
             return render_template('entry/user.html', message=message), 400
+        if password is None or password == "":
+            # must provide a password
+            message = "must provide password"
+            return render_template('entry/user.html', message=message)
         # get cursor for insert and select
         cur = db_connection.cursor()
         try:
             # try to insert the new user
             cur.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
-            db_connection.commit()
             # get the new user's id to display inserted result
             uid = cur.lastrowid
+            cur.execute("INSERT INTO PASSWORD VALUES (?, ?)", (uid, bcrypt.hashpw(password.encode('utf-8'),
+                                                                                  bcrypt.gensalt())))
+            # now commit after user and password are stored
+            db_connection.commit()
             # get the inserted row to display back to user
             inserted_row = cur.execute("SELECT * FROM USER WHERE UID=?", (uid,))
             # return a success message with added data
@@ -110,8 +117,9 @@ def admin_entry():
     :return: Rendered template of admin entry page.
     """
     # check user authorization, abort if not valid
-    if not check_user():
-        abort(403)
+    if not check_admin():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='admin', resource='/entry/admin'))
     # default empty message
     message = None
     # get all users who are not already admins to prompt entry form
@@ -174,9 +182,9 @@ def director_entry():
     :return: Rendered template, including lists of user and movie ids
     """
     # check for user authorization
-    if not check_user():
-        # abort if unauthorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not moderator
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/director'))
     # default empty message
     message = None
     # get users who are not already directors for prompting form
@@ -259,9 +267,9 @@ def actor_entry():
     :return: rendered template including list of users who are not actors
     """
     # check for authorization
-    if not check_user():
-        # abort if unauthorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/actor'))
     # default empty message
     message = None
     # get list of users who are not already actors for prompting form
@@ -340,9 +348,9 @@ def movie_entry():
     :return: rendered template, including list of potential directors and entered_by values
     """
     # check user authorization
-    if not check_user():
-        # abort if unauthorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/moderator'))
     # default empty message
     message = None
     # get potential directors for listing in form
@@ -417,9 +425,9 @@ def review_entry():
     :return: rendered template including list of movies and users
     """
     # check that user is authorized
-    if not check_user():
-        # abort if not authorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/review'))
     # default empty message
     message = None
     # get movies for mid dropdown
@@ -491,9 +499,9 @@ def acted_entry():
     :return: rendered template including dropdowns for mid and uid of movies and actors
     """
     # check user authorization
-    if not check_user():
-        # abort if not authorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/acted'))
     # default empty message
     message = None
     # get movies for mid dropdown
@@ -558,9 +566,9 @@ def poster_entry():
     :return: rendered template including list of movies ids
     """
     # check for authorization
-    if not check_user():
-        # abort if unauthorized
-        abort(403)
+    if not check_moderator():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/poster'))
     # get the list of movies for dropdown
     curs = db_connection.cursor()
     curs.execute('SELECT MID, title FROM MOVIE')
@@ -633,9 +641,9 @@ def bulk_entry():
     :return:
     """
     # check user authorization
-    if not check_user():
-        # abort if unauthorized
-        abort(403)
+    if not check_admin():
+        # deny access if not allowed
+        return redirect(url_for('accounts_api.forbidden', account_type='admin', resource='/entry/bulk'))
     if request.method == 'GET':
         # get requests just get the form
         return render_template('entry/bulk.html', message=None)

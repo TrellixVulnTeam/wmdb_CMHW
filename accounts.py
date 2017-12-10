@@ -1,14 +1,81 @@
+import re
 import sqlite3
 from datetime import datetime
 
 import bcrypt
-import re
 from flask import Blueprint, request, abort, render_template, session, redirect, url_for, current_app
 from validate_email import validate_email
 
 from db_connection import db_connection
 
 accounts_api = Blueprint('accounts_api', __name__)
+
+"""
+Account privileges are as follows, each level possessing the privilege of the previous levels.
+public:
+    browse movie table
+    search movies through front page
+    see reviews through front page
+user:
+    create reviews/ratings through front page (record submitted-by uid)
+moderator:
+    browse user table
+    browse admin table
+    browse director
+    browse actor
+    browse review
+    browse acted_in
+    browse poster
+    data entry for director
+    data entry for actor
+    data entry for movie
+    data entry for review
+    data entry for acted_in
+    data entry for poster
+admin:
+    data entry for user
+    data entry for admin
+    bulk data entry
+"""
+
+
+def check_moderator():
+    """
+    Check session for moderator status or above.
+    :return: true iff the request came from a user with moderator or admin status
+    """
+    if 'uid' in session:
+        curs = db_connection.cursor()
+        curs.execute('SELECT UID, position FROM ADMIN WHERE UID==?', (session['uid'],))
+        rows = curs.fetchall()
+        if len(rows) == 1:
+            uid, position = rows[0]
+            if uid == session['uid'] and (position == 'admin' or position == 'moderator'):
+                return True
+    return False
+
+
+def check_admin():
+    """
+    Check session for admin status.
+    :return: true iff the request came from a user with moderator or admin status
+    """
+    if 'uid' in session:
+        curs = db_connection.cursor()
+        curs.execute('SELECT UID, position FROM ADMIN WHERE UID==?', (session['uid'],))
+        rows = curs.fetchall()
+        if len(rows) == 1:
+            uid, position = rows[0]
+            if uid == session['uid'] and position == 'admin':
+                return True
+    return False
+
+
+@accounts_api.route("/forbidden")
+def forbidden():
+    account_type = request.args.get('account_type')
+    resource = request.args.get('resource')
+    return render_template('accounts/denied.html', account_type=account_type, resource=resource), 403
 
 
 @accounts_api.route('/login', methods=['POST', 'GET'])
