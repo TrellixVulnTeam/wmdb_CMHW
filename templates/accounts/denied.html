@@ -1,0 +1,9 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>Forbidden</h3>
+    {% if 'uid' in session %}
+        <p>You must be a {{ account_type }} to access the resource at {{ resource }}.</p>
+    {% else %}
+        <p>You must login to access the resource at {{ resource }}</p>
+    {% endif %}
+{% endblock %}
