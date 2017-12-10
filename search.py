@@ -43,7 +43,7 @@ def search_user():
         query = "SELECT u_name, email FROM USER WHERE u_name LIKE ?", (user_email)
         cur.execute(query)
         result = cur.fetchall()
-    return render_template('search/search_userName.html', userName=result,  userEmail = user_email)
+    return render_template('search/search_userName.html', userName=result, userEmail=user_email)
 
 
 
