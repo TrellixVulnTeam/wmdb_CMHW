@@ -1,19 +1,34 @@
-<html>
-   <body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YMDB - Search Movies</title>
+    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+        <body>
+            <div class="wrap">
+                <h2 align="center"> Search a movies's average rating </h2> 
+                <div class="search">
+                    <form action = "url_for('rating')}} method" = "POST"></form>
+                      <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
+                      <button type="submit" class="searchButton">
+                              <i class="fa fa-search"></i>
+                      </button>
+                    </form> 
+                </div>
+                <div class="search_result" style="display:none"> 
+                  <p> Rating for {{movieTitle}}: </p>
+                  <p>{{result["rating"]}}</p>
+                </div>
+            </div>            
+        </form>
+</body>
 
-    <h2> Search Average Rating a Moive
-      <form action = "{{ url_for('addrec') }}" method = "POST">
-         <h3>Student Information</h3>
-         Name<br>
-         <input type = "text" name = "nm" /></br>
-         
-         Address<br>
-         <textarea name = "add" ></textarea><br>
-         City<br>
-         <input type = "text" name = "city" /><br>
-         PINCODE<br>
-         <input type = "text" name = "pin" /><br>
-         <input type = "submit" value = "submit" /><br>
-      </form>
-   </body>
+<script> 
+  $('#searchButton').click(function(){
+    $("search_result").show()
+  })
+</script>
+
 </html>

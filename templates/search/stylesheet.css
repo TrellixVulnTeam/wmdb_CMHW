@@ -2,7 +2,6 @@
 
 
 h2{
-    color: #999999;
     font-family: arial, sans-serif;
     font-size: 16px;
     font-weight: bold;
@@ -54,7 +53,7 @@ body{
   .wrap{
     width: 30%;
     position: absolute;
-    top: 50%;
+    top: 10%;
     left: 50%;
     transform: translate(-50%, -50%);
   }
