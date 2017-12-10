@@ -1,3 +1,5 @@
+import random
+
 import requests
 
 with open('api.key', 'r') as key_file:
@@ -6,7 +8,13 @@ with open('api.key', 'r') as key_file:
 movie_api = 'http://www.omdbapi.com/'
 poster_api = 'http://img.omdbapi.com/'
 
-payload = {'t': 'movie', 'type': 'movie', 'apikey': api_key}
+payload = {'i': 'tt0000001', 'type': 'movie', 'apikey': api_key}
 r = requests.get(movie_api, params=payload)
 
-print(r.json())
+
+mid_vals = random.sample(range(1, 3135393), 100000)
+
+for i in mid_vals:
+    imdb_id = 'tt' + format(i, '07')
+    payload = {'i': imdb_id, 'type': 'movie', 'apikey': api_key}
+    print(payload)

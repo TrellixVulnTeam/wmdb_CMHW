@@ -10,8 +10,6 @@ from validate_email import validate_email
 
 from db_connection import db_connection
 
-global POSTER_DIR
-
 entry_api = Blueprint('entry_api', __name__)
 
 POSTER_DIR = os.path.join(
@@ -755,7 +753,7 @@ def bulk_admin(file):
         # get the number of rows affected
         num_rows = curs.rowcount
         # commit the changes
-        db_connection.commit
+        db_connection.commit()
         # return the success message
         return 'bulk admin entry success, inserted ' + str(num_rows) + ' rows'
     except sqlite3.Error as err:
@@ -795,7 +793,7 @@ def bulk_director(file):
         # get the number of rows affected
         num_rows = curs.rowcount
         # commit the changes
-        db_connection.commit
+        db_connection.commit()
         # return the success message
         return 'bulk admin entry success, inserted ' + str(num_rows) + ' rows'
     except sqlite3.Error as err:
