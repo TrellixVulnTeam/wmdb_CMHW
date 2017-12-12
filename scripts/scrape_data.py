@@ -27,6 +27,9 @@ def parse_movie(movie_id):
     page = bs4.BeautifulSoup(res.text, 'html.parser')
     # get title
     title = page.find('h1', itemprop='name').contents[0].strip(u"\u00A0")
+    curs.execute('SELECT MID FROM MOVIE WHERE title = ?', (title,))
+    if curs.fetchone() is not None:
+        raise RuntimeError("already existed")
     # get release date
     release = parse_date(page.find('meta', itemprop='datePublished')['content'])
     # create and/or lookup director
