@@ -32,19 +32,22 @@ def parse_movie(movie_id):
     # create and/or lookup director
     dir_uid = get_director_uid(page)
     # enter the movie into the database
-    curs.execute("INSERT INTO MOVIE VALUES (NULL, ?, ?, ?, 0, strftime('%s', 'now'))",
+    curs.execute("INSERT INTO MOVIE VALUES (NULL, ?, ?, ?, 1, strftime('%s', 'now'))",
                  (dir_uid, title, unix_time(release)))
     mid = curs.lastrowid
     # commit the changes
     db_connection.commit()
-    # get the poster image
-    image = get_poster(page)
-    # save the image
-    image.save(os.path.join(POSTER_DIR, mid_filename(mid)))
-    # add the image url to the poster database
-    curs.execute('INSERT INTO POSTER VALUES (?, ?, 1)', (mid, mid_filename(mid)))
-    # commit the change
-    db_connection.commit()
+    try:
+        # get the poster image
+        image = get_poster(page)
+        # save the image
+        image.save(os.path.join(POSTER_DIR, mid_filename(mid)))
+        # add the image url to the poster database
+        curs.execute('INSERT INTO POSTER VALUES (?, ?, 1)', (mid, mid_filename(mid)))
+        # commit the change
+        db_connection.commit()
+    except:
+        db_connection.rollback()
     # get the cast and character lists
     actors = page.find_all('td', itemprop='actor')
     chars = page.find_all('td', {'class': 'character'})
@@ -52,7 +55,10 @@ def parse_movie(movie_id):
     for i in range(0, len(actors) - 1):
         # create and/or lookup actor uid
         act_uid = get_actor_uid(actors[i])
-        char_name = chars[i].find('a').string
+        try:
+            char_name = chars[i].find('a').string
+        except AttributeError:
+            char_name = "n/a"
         # insert actor and character into database
         curs.execute('INSERT INTO ACTED_IN VALUES (?, ?, ?)', (mid, act_uid, char_name))
         # commit the change
@@ -98,10 +104,9 @@ def get_actor_uid(actor_tag):
             db_connection.commit()
         # now dir_uid must be in director table
         return act_uid
-    except RuntimeError as err:
+    except:
         # any error should rollback changes
         db_connection.rollback()
-        raise err
 
 
 def get_poster(page):
@@ -154,10 +159,9 @@ def get_director_uid(page):
             db_connection.commit()
         # now dir_uid must be in director table
         return dir_uid
-    except RuntimeError as err:
+    except:
         # any error should rollback changes
         db_connection.rollback()
-        raise err
 
 
 def get_dob(name_id):
@@ -213,6 +217,3 @@ def user_info(given_name):
     email = stripped + '@ymdb.com'
     return stripped, email
 
-
-# ----------------------------------- start script ----------------------------------- #
-parse_movie('tt0111161')
