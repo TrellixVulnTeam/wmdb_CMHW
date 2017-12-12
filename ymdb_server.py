@@ -4,7 +4,7 @@ from flask import Flask, render_template
 
 
 from browse import browse_api
-from db_connection import db_connection
+from globals import db_connection
 from entry import entry_api
 from search import search_api
 from accounts import accounts_api

@@ -6,7 +6,7 @@ import bcrypt
 from flask import Blueprint, request, abort, render_template, session, redirect, url_for, current_app
 from validate_email import validate_email
 
-from db_connection import db_connection
+from globals import db_connection
 
 accounts_api = Blueprint('accounts_api', __name__)
 

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for
 from flask_paginate import Pagination, get_page_args
 
 from accounts import check_moderator
-from db_connection import db_connection
+from globals import db_connection
 
 browse_api = Blueprint('browse_api', __name__)
 

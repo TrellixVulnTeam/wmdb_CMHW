@@ -1,22 +1,17 @@
+import urllib
 from datetime import datetime
 
+import os
 import requests
 import bs4
 
-from db_connection import db_connection
+from entry import mid_filename
+from globals import db_connection, unix_time, POSTER_DIR
+from PIL import Image
+
 
 MOVIE_URL = 'http://www.imdb.com/title/'
 ACTOR_URL = 'http://www.imdb.com/name/'
-
-
-def unix_time(dt):
-    """
-    Covert datetime object to seconds to/from epoch
-    :param dt: datetime object to convert
-    :return: seconds from epoch (unix time), may be positive or negative
-    """
-    epoch = datetime.utcfromtimestamp(0)
-    return (dt - epoch).total_seconds()
 
 
 def parse_movie(movie_id):
@@ -39,8 +34,28 @@ def parse_movie(movie_id):
     # enter the movie into the database
     curs.execute("INSERT INTO MOVIE VALUES (NULL, ?, ?, ?, 0, strftime('%s', 'now'))",
                  (dir_uid, title, unix_time(release)))
+    mid = curs.lastrowid
     # commit the changes
     db_connection.commit()
+    # get the poster image
+    image = get_poster(page)
+    # save the image
+    image.save(os.path.join(POSTER_DIR, mid_filename(mid)))
+    # add the image url to the poster database
+    curs.execute('INSERT INTO POSTER VALUES (?, ?, 1)', (mid, mid_filename(mid)))
+    # commit the change
+    db_connection.commit()
+
+
+def get_poster(page):
+    """
+    Get the poster url from the page. (probably a jpg)
+    :param page: IMDB page as parsed from the response
+    :return: full url to the poster hosted by imdb
+    """
+    div_content = page.find('div', {'class': 'poster'})
+    url = div_content.find('img', itemprop='image')['src']
+    return Image.open(urllib.request.urlopen(url))
 
 
 def get_director_uid(page):
@@ -57,22 +72,30 @@ def get_director_uid(page):
         dir_imdb_id, dir_name = get_director_info(page.find('span', itemprop='director'))
         # get the date of birth for the director
         dir_dob = get_dob(dir_imdb_id)
-        # check if the director
+        # check if the director is already entered
         curs.execute('SELECT UID FROM DIRECTOR WHERE given_name = ?', (dir_name,))
         dir_uid = curs.fetchone()
-        if dir_uid is None:
-            # if no director is found, check if this director is already entered as an actor
-            curs.execute('SELECT UID FROM ACTOR WHERE given_name = ?', (dir_name,))
-            dir_uid = curs.fetchone()
-        if dir_uid is None:
+        if dir_uid is not None:
+            # if director already exists, return it
+            return dir_uid[0]
+        # otherwise, look in actor or create user
+        curs.execute('SELECT UID FROM ACTOR WHERE given_name = ?', (dir_name,))
+        act_uid = curs.fetchone()
+        if act_uid is None:
             # if not in director or actor, must add new user/director
             curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", user_info(dir_name))
             dir_uid = curs.lastrowid
-        # add the new (or found) user to the director table
-        curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (dir_uid, dir_name, dir_dob))
-        # commit the changes
-        db_connection.commit()
-        # return the uid of the director
+            # add the new  user to the director table
+            curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (dir_uid, dir_name, dir_dob))
+            # commit the changes
+            db_connection.commit()
+        else:
+            # director is not in director table, but is present in actor; add actor to director
+            curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (act_uid[0], dir_name, dir_dob))
+            dir_uid = curs.lastrowid
+            # commit the changes
+            db_connection.commit()
+        # now dir_uid must be in director table
         return dir_uid
     except RuntimeError as err:
         # any error should rollback changes

@@ -10,25 +10,13 @@ from flask import Blueprint, render_template, abort, request, session, redirect,
 from validate_email import validate_email
 
 from accounts import check_moderator, check_admin
-from db_connection import db_connection
+from globals import db_connection, unix_time, POSTER_DIR
 
 entry_api = Blueprint('entry_api', __name__)
 
-POSTER_DIR = os.path.join(
-    os.path.dirname(os.path.realpath(__file__)),
-    'static',
-    'posters'
-)
 
-
-def unix_time(dt):
-    """
-    Covert datetime object to seconds to/from epoch
-    :param dt: datetime object to convert
-    :return: seconds from epoch (unix time), may be positive or negative
-    """
-    epoch = datetime.utcfromtimestamp(0)
-    return (dt - epoch).total_seconds()
+def mid_filename(mid):
+    return '{:08x}'.format(mid) + '.png'
 
 
 @entry_api.route("/entry")
@@ -602,9 +590,9 @@ def poster_entry():
             return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
         try:
             # create new filename
-            filename = str(mid) + '.png'
+            filename = mid_filename(mid)
             # try to enter new filename in database
-            curs.execute('REPLACE INTO POSTER VALUES (?, ?)', (mid, filename))
+            curs.execute('REPLACE INTO POSTER VALUES (?, ?, ?)', (mid, filename, session['uid']))
             # don't commit yet, wait until file saves
         except sqlite3.Error as err:
             # should update if exists, so this is a real problem
