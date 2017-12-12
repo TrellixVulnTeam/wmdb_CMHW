@@ -1,4 +1,4 @@
-
+import sqlite3
 import random
 from datetime import datetime
 
@@ -29,34 +29,32 @@ def user_info(given_name):
     :param given_name: given name for this user
     :return: (u_name, email) from the given name
     """
-    stripped = given_name.replace(' ', '_').lower()
+    stripped = given_name.lower().replace(' ', '_').replace("'", '').replace('"', '')
     email = stripped + '@ymdb.com'
     return stripped, email
 
 
-def get_director(director_name):
+def get_director(d_name):
     """
     Get or create the director user based on name.
-    :param director_name: name of director exactly from api
+    :param d_name: name of director exactly from api
     :return: uid of director
     """
     # get default info from name
-    u_name, email = user_info(director_name)
+    u_name, email = user_info(d_name)
     # check if the user exists
     curs.execute('SELECT UID FROM USER WHERE u_name = ?', (u_name,))
     user_uid = curs.fetchone()
     if user_uid is not None:
         # insert into directors if not already there
-        curs.execute('INSERT INTO DIRECTOR SELECT (?, NULL , ?, NULL) \
-                     WHERE NOT EXISTS(SELECT UID FROM DIRECTOR WHERE UID == ?)',
-                     (user_uid, director_name, user_uid))
+        curs.execute('REPLACE INTO DIRECTOR VALUES (?, NULL , ?, NULL)', (user_uid[0], d_name))
         db_connection.commit()
-        return user_uid
+        return user_uid[0]
     else:
         # insert into both user table and director table
         curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
         user_uid = curs.lastrowid
-        curs.execute("INSERT INTO DIRECTOR VALUES (?, NULL, ?, NULL)", (user_uid, director_name))
+        curs.execute("INSERT INTO DIRECTOR VALUES (?, NULL, ?, NULL)", (user_uid, d_name))
         db_connection.commit()
         return user_uid
 
@@ -74,11 +72,9 @@ def get_actor(actor_name):
     user_uid = curs.fetchone()
     if user_uid is not None:
         # insert into actors if not already there
-        curs.execute('INSERT INTO ACTOR SELECT (?, NULL , ?, NULL) \
-                     WHERE NOT EXISTS(SELECT UID FROM ACTOR WHERE UID == ?)',
-                     (user_uid, actor_name, user_uid))
+        curs.execute('REPLACE INTO ACTOR VALUES (?, NULL, ?, NULL)', (user_uid[0], actor_name))
         db_connection.commit()
-        return user_uid
+        return user_uid[0]
     else:
         # insert into both user table and director table
         curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
@@ -94,10 +90,10 @@ with open('api.key', 'r') as key_file:
 
 movie_api = 'http://www.omdbapi.com/'
 
-review_text = {'', 'terrible, just terrible.', "worst movie I've ever seen", 'I liked it.', "wasn't great", "amazing!",
-               "best movie in the world", "who made this?"}
+review_text = ['', 'terrible, just terrible.', "worst movie I've ever seen", 'I liked it.', "wasn't great", "amazing!",
+               "best movie in the world", "who made this?"]
 
-mid_vals = range(150000, 3135393)
+mid_vals = range(200000, 3135393)
 
 curs = db_connection.cursor()
 
@@ -151,12 +147,13 @@ for i in mid_vals:
             print("added actor: " + actor)
             db_connection.commit()
         # insert random ratings
-        for review in random.sample(range(1, 5), 6):
-            rand_uid = random.ranInt(1, 10000)
+        for review in range(1, 7):
+            rand_uid = random.randint(1, 10000)
             curs.execute("INSERT INTO REVIEW VALUES (?, ?, ?, ?, STRFTIME('%s', 'now'))",
-                         (mid, rand_uid, random.choice(review_text), review))
+                         (mid, rand_uid, random.choice(review_text), random.randint(0, 5)))
             print("added review: " + str(review))
             db_connection.commit()
-    except:
+    except Exception as err:
         print('exception')
         db_connection.rollback()
+        raise err
