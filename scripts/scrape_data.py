@@ -45,6 +45,63 @@ def parse_movie(movie_id):
     curs.execute('INSERT INTO POSTER VALUES (?, ?, 1)', (mid, mid_filename(mid)))
     # commit the change
     db_connection.commit()
+    # get the cast and character lists
+    actors = page.find_all('td', itemprop='actor')
+    chars = page.find_all('td', {'class': 'character'})
+    # go through each actor/character
+    for i in range(0, len(actors) - 1):
+        # create and/or lookup actor uid
+        act_uid = get_actor_uid(actors[i])
+        char_name = chars[i].find('a').string
+        # insert actor and character into database
+        curs.execute('INSERT INTO ACTED_IN VALUES (?, ?, ?)', (mid, act_uid, char_name))
+        # commit the change
+        db_connection.commit()
+
+
+def get_actor_uid(actor_tag):
+    """
+    Create or find the actor from a given imdb movie tag. Insert the actor into actor and/or user table if necessary.
+    Get the uid of the actor and return it.
+    :param actor_tag: actor tag as taken by page.find_all('td', ...)
+    :return: actor uid
+    """
+    # get a database cursor
+    curs = db_connection.cursor()
+    try:
+        # get imdb id and name for actor
+        act_imdb_id, act_name = get_name_info(actor_tag)
+        # check if the actor is already entered
+        curs.execute('SELECT UID FROM ACTOR WHERE given_name = ?', (act_name,))
+        act_uid = curs.fetchone()
+        if act_uid is not None:
+            # if director already exists, return it
+            return act_uid[0]
+        # otherwise, look in director for this actor (get uid and date of birth if present)
+        curs.execute('SELECT UID, DoB FROM DIRECTOR WHERE given_name = ?', (act_name,))
+        dir_uid = curs.fetchone()
+        if dir_uid is None:
+            # get the date of birth for the actor from imdb
+            dir_dob = get_dob(act_imdb_id)
+            # if not in director or actor, must add new user/director
+            curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", user_info(act_name))
+            act_uid = curs.lastrowid
+            # add the new  user to the director table
+            curs.execute('INSERT INTO ACTOR VALUES (?, NULL, ?, ?)', (act_uid, act_name, dir_dob))
+            # commit the changes
+            db_connection.commit()
+        else:
+            # director is not in director table, but is present in actor; add actor to director
+            curs.execute('INSERT INTO ACTOR VALUES (?, NULL, ?, ?)', (dir_uid[0], act_name, dir_uid[1]))
+            act_uid = curs.lastrowid
+            # commit the changes
+            db_connection.commit()
+        # now dir_uid must be in director table
+        return act_uid
+    except RuntimeError as err:
+        # any error should rollback changes
+        db_connection.rollback()
+        raise err
 
 
 def get_poster(page):
@@ -69,9 +126,7 @@ def get_director_uid(page):
     curs = db_connection.cursor()
     try:
         # get director id
-        dir_imdb_id, dir_name = get_director_info(page.find('span', itemprop='director'))
-        # get the date of birth for the director
-        dir_dob = get_dob(dir_imdb_id)
+        dir_imdb_id, dir_name = get_name_info(page.find('span', itemprop='director'))
         # check if the director is already entered
         curs.execute('SELECT UID FROM DIRECTOR WHERE given_name = ?', (dir_name,))
         dir_uid = curs.fetchone()
@@ -79,9 +134,11 @@ def get_director_uid(page):
             # if director already exists, return it
             return dir_uid[0]
         # otherwise, look in actor or create user
-        curs.execute('SELECT UID FROM ACTOR WHERE given_name = ?', (dir_name,))
+        curs.execute('SELECT UID, DoB FROM ACTOR WHERE given_name = ?', (dir_name,))
         act_uid = curs.fetchone()
         if act_uid is None:
+            # get the date of birth for the director
+            dir_dob = get_dob(dir_imdb_id)
             # if not in director or actor, must add new user/director
             curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", user_info(dir_name))
             dir_uid = curs.lastrowid
@@ -91,7 +148,7 @@ def get_director_uid(page):
             db_connection.commit()
         else:
             # director is not in director table, but is present in actor; add actor to director
-            curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (act_uid[0], dir_name, dir_dob))
+            curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (act_uid[0], dir_name, act_uid[1]))
             dir_uid = curs.lastrowid
             # commit the changes
             db_connection.commit()
@@ -112,22 +169,27 @@ def get_dob(name_id):
     res = requests.get(ACTOR_URL + name_id)
     res.raise_for_status()
     page = bs4.BeautifulSoup(res.text, 'html.parser')
-    dob = page.find('time', itemprop='birthDate')['datetime']
+    try:
+        # try to get the date of birth
+        dob = page.find('time', itemprop='birthDate')['datetime']
+    except TypeError:
+        # return none if not available
+        return None
     return parse_date(dob)
 
 
-def get_director_info(director_span):
+def get_name_info(element):
     """
     Get the director information from the imdb span tag
-    :param director_span: span tag contents as taken from page.find('span' ...)
+    :param element: tag contents as taken from page.find('span' ...)
     :return: {dir_id : imdb director id, dir_name : director name}
     """
     # get the url to the director and split it by directory separator
-    split_url_path = director_span.find('a', itemprop='url')['href'].split('/')
+    split_url_path = element.find('a', itemprop='url')['href'].split('/')
     # the second element contains {{id}}?ref, so split again by '?' char
     dir_id = split_url_path[2].split('?')[0]
     # name is in the span with prop "name"
-    name = director_span.find('span', itemprop='name').contents[0]
+    name = element.find('span', itemprop='name').contents[0]
     return str(dir_id), str(name)
 
 

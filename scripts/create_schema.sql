@@ -33,7 +33,7 @@ CREATE TABLE DIRECTOR (
   UID            INTEGER PRIMARY KEY,
   famous_for_MID INTEGER,
   given_name     TEXT    NOT NULL,
-  DoB            INTEGER NOT NULL,
+  DoB            INTEGER,
   FOREIGN KEY (UID) REFERENCES USER (UID)
 );
 
@@ -41,15 +41,15 @@ CREATE TABLE ACTOR (
   UID        INTEGER PRIMARY KEY,
   stage_name TEXT,
   given_name TEXT    NOT NULL,
-  DoB        INTEGER NOT NULL,
+  DoB        INTEGER,
   FOREIGN KEY (UID) REFERENCES USER (UID)
 );
 
 CREATE TABLE MOVIE (
   MID          INTEGER PRIMARY KEY,
-  director_UID INTEGER NOT NULL,
+  director_UID INTEGER,
   title        TEXT    NOT NULL,
-  release_date INTEGER NOT NULL,
+  release_date INTEGER,
   entered_by   INTEGER NOT NULL,
   entered_date INTEGER NOT NULL,
   FOREIGN KEY (director_UID) REFERENCES DIRECTOR (UID),
