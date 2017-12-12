@@ -97,11 +97,12 @@ movie_api = 'http://www.omdbapi.com/'
 review_text = {'', 'terrible, just terrible.', "worst movie I've ever seen", 'I liked it.', "wasn't great", "amazing!",
                "best movie in the world", "who made this?"}
 
-mid_vals = random.sample(range(1, 3135393), 300000)
+mid_vals = range(150000, 3135393)
 
 curs = db_connection.cursor()
 
 for i in mid_vals:
+    print('id: ' + str(i))
     try:
         imdb_id = 'tt' + format(i, '07')
         payload = {'i': imdb_id, 'type': 'movie', 'apikey': api_key}
