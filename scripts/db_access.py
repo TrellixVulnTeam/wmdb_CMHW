@@ -2,7 +2,19 @@ import sqlite3
 
 from globals import db_connection
 from scripts import util
-from scripts.util import user_info
+
+
+def make_role(mid, uid, character):
+    """
+    Enter a role into the database.
+    :param mid: movie id
+    :param uid: actor id
+    :param character: character name for this role
+    :return: None
+    """
+    curs = db_connection.cursor()
+    curs.execute('INSERT INTO ACTED_IN VALUES (?, ?, ?)', (mid, uid, character))
+    db_connection.commit()
 
 
 def lookup_movie(movie_title):
@@ -36,6 +48,7 @@ def make_movie(director_uid, title, release_date):
     curs.execute("INSERT INTO MOVIE VALUES (NULL, ?, ?, ?, 1, strftime('%s', 'now'))",
                  (director_uid, title, release_date))
     db_connection.commit()
+    return curs.lastrowid
 
 
 def lookup_user(full_name):
@@ -96,6 +109,7 @@ def make_director(dir_uid, dir_name, dob):
     """
     curs = db_connection.cursor()
     curs.execute('INSERT INTO DIRECTOR VALUES (?, NULL, ?, ?)', (dir_uid, dir_name, dob))
+    db_connection.commit()
 
 
 def get_actor_dob(act_uid):
@@ -112,45 +126,14 @@ def get_actor_dob(act_uid):
     return None
 
 
-def get_director(director_name):
-    # get a database cursor
+def make_actor(act_uid, actor_name, dob):
+    """
+    Insert a new actor into the actor table
+    :param act_uid: uid for new actor
+    :param actor_name: name of actor
+    :param dob: date of birth in unix time
+    :return: None
+    """
     curs = db_connection.cursor()
-    # uid for director
-    uid = make_uid(director_name)
-    # insert into director (replacing if already there)
-    curs.execute('REPLACE INTO DIRECTOR VALUES (?, NULL, ?, NULL)', (uid, director_name))
-    # commit change and return uid
+    curs.execute('INSERT INTO ACTOR VALUES (?, NULL, ?, ?)', (act_uid, actor_name, dob))
     db_connection.commit()
-    return uid
-
-
-def get_actor(actor_name):
-    # get a database cursor
-    curs = db_connection.cursor()
-    # uid for actor
-    uid = make_uid(actor_name)
-    # insert into actor (replacing if already there)
-    curs.execute('REPLACE INTO ACTOR VALUES (?, NULL, ?, NULL)', (uid, actor_name))
-    # commit changes and return uid
-    db_connection.commit()
-    return uid
-
-
-def make_uid(user_fullname):
-    # get default info from name
-    u_name, email = user_info(user_fullname)
-    # get cursor for lookup
-    curs = db_connection.cursor()
-    # check if the user exists
-    curs.execute('SELECT UID FROM USER WHERE u_name = ?', (u_name,))
-    user_uid = curs.fetchone()
-    if user_uid is not None:
-        # user exists, return uid
-        return user_uid[0]
-    else:
-        # user doesn't exist, create it
-        curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
-        user_uid = curs.lastrowid
-        # commit change and return uid
-        db_connection.commit()
-        return user_uid

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+from urllib3.exceptions import ReadTimeoutError
 
 from globals import unix_time, db_connection
 from scripts import db_access
@@ -23,8 +24,12 @@ def send_request(api, id_val, payload):
     :param payload: arguments
     :return: json data
     """
-    response = requests.get(api + str(id_val), params=payload, timeout=0.1)
-    response.raise_for_status()
+    # do a loop on the request limiting error code
+    s_code = 429
+    while s_code == 429:
+        # loop until we aren't getting the error code
+        response = requests.get(api + str(id_val), params=payload, timeout=0.25)
+        s_code = response.status_code
     return response.json()
 
 
@@ -34,7 +39,27 @@ def get_birthday(id_val):
     :param id_val: person id
     :return: unix birthdate
     """
-    return parse_date(send_request(person_api, id_val, {'api_key': api_key})['birthday'])
+    # get the data from server
+    try:
+        # try to get the data from server, but timeout after some duration
+        person_data = send_request(person_api, id_val, {'api_key': api_key})
+    except ReadTimeoutError:
+        # not that big of a deal to be missing a birthdate
+        return None
+    # if birthday isn't available, return None
+    if 'birthday' not in person_data:
+        return None
+    dob_str = person_data['birthday']
+    # if no value, return none
+    if dob_str is None:
+        return None
+    # otherwise, return unix time
+    try:
+        # if we can't format the string, give up
+        return parse_date(dob_str)
+    except ValueError:
+        # return none if not able to parse
+        return None
 
 
 def get_director(crew):
@@ -43,15 +68,47 @@ def get_director(crew):
     :param crew: json data of crew from request
     :return: name, dir_id of director or None if not found
     """
-    dir_id = None
+    director_id = None
     director_name = None
     for entry in crew:
         if entry['job'] == 'Director':
-            dir_id = entry['id']
+            director_id = entry['id']
             director_name = entry['name']
-    if dir_id is None:
+    if director_id is None:
         return None, None
-    return director_name, dir_id
+    return director_name, director_id
+
+
+def enter_actor(role_json):
+    """
+    Enter an actor into the database after checking if user exists in other tables
+    :param role_json: role information
+    :return: uid of new (or existing) actor
+    """
+    # first see if actor has a uid
+    actor_fullname = role_json['name']
+    actor_id = role_json['id']
+    act_uid = db_access.lookup_user(actor_fullname)
+    if act_uid is None:
+        # no user found, must add the user
+        act_uid = db_access.make_user(actor_fullname)
+        # and add that user to the director table with DoB
+        act_dob = get_birthday(actor_id)
+        db_access.make_actor(act_uid, actor_fullname, act_dob)
+    else:
+        # already a user now we have to check if the user is in either the actor or director table
+        if db_access.get_actor_dob(act_uid) is None:
+            # not in actors, check directors
+            act_dob = db_access.get_director_dob(act_uid)
+            if act_dob is None:
+                # not in directors or actors, add to actors after getting birthdate
+                act_dob = get_birthday(actor_id)
+                db_access.make_actor(act_uid, actor_fullname, act_dob)
+            else:
+                # actor is already in director, so we can take date of birth from there
+                db_access.make_actor(act_uid, actor_fullname, act_dob)
+    # return the uid of actor (created or existing)
+    return act_uid
 
 
 with open('tmdb.key', 'r') as key_file:
@@ -101,19 +158,17 @@ for movie_id in range(550, 551):
 
     # now we are guaranteed to have a director, start entering movie
     released = parse_date(data['release_date'])
-    db_access.make_movie(uid, title, released)
+    mid = db_access.make_movie(uid, title, released)
+
+    # movie is in, start adding actors
+    cast = data['credits']['cast']
+    for role_index in range(0, min(len(cast), 5)):
+        # create or find the actor
+        actor_uid = enter_actor(cast[role_index])
+        # insert the role into acted_in
+        character = cast[role_index]['character']
+        db_access.make_role(mid, actor_uid, character)
 
     """
-    # movie done, now enter actors
-    cast = data['credits']['cast']
-    for actor in cast:
-        # check for user in user table based on name
-        uid = db_access.lookup_user(actor['name'])
-        if uid is None:
-            # not found, must make user
-            uid = db_access.make_user(actor['name'])
-
     poster_url = image_api + data['poster_path']
-
-    cast = data['credits']['cast']
     """

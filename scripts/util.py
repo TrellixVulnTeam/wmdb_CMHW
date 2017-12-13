@@ -11,7 +11,7 @@ def user_info(given_name):
     :param given_name: given name for this user
     :return: (u_name, email) from the given name
     """
-    stripped = rgx_white_space.sub('_', given_name)
+    stripped = rgx_white_space.sub('_', given_name).lower()
     stripped = rgx_not_words.sub('', stripped)
     email = stripped + '@ymdb.com'
     return stripped, email
