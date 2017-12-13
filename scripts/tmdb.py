@@ -1,10 +1,80 @@
+import urllib
 from datetime import datetime
 
+import os
 import requests
+from PIL import Image
 from urllib3.exceptions import ReadTimeoutError
 
-from globals import unix_time, db_connection
+from entry import mid_filename
+from globals import unix_time, db_connection, POSTER_DIR
 from scripts import db_access
+
+
+def enter_movie(movie_id):
+    """
+    Grab, parse, and enter the data for a given movie. Reuses actors/directors based on name.
+    :param movie_id: the tmdb api movie id
+    :return: the internal mid for this movie in MOVIE table
+    """
+    # print id for tracking progress
+    print(movie_id)
+    # get the data from api
+    data = send_request(movie_api, movie_id, {'api_key': api_key, 'append_to_response': 'credits'})
+    # get variables
+    title = data['title']
+    # check if movie already entered
+    mid = db_access.lookup_movie(title)
+    if mid is not None:
+        # already did this movie
+        return mid
+    # otherwise, enter the movie
+
+    # start with director (see if already in the database)
+    dir_name, dir_id = get_director(data['credits']['crew'])
+    uid = db_access.lookup_user(dir_name)
+    if uid is None:
+        # no user found, must add the user
+        uid = db_access.make_user(dir_name)
+        # and add that user to the director table with DoB
+        dir_dob = get_birthday(dir_id)
+        db_access.make_director(uid, dir_name, dir_dob)
+    else:
+        # already a user now we have to check if the user is in either the actor or director table
+        if db_access.get_director_dob(uid) is None:
+            # not in directors, check actors
+            dir_dob = db_access.get_actor_dob(uid)
+            if dir_dob is None:
+                # not in directors or actors, add to directors
+                dir_dob = get_birthday(dir_id)
+                db_access.make_director(uid, dir_name, dir_dob)
+            else:
+                # director is already in actor, so we can take date of birth from there
+                db_access.make_director(uid, dir_name, dir_dob)
+
+    # now we are guaranteed to have a director, start entering movie
+    released = parse_date(data['release_date'])
+    mid = db_access.make_movie(uid, title, released)
+
+    # movie is in, start adding actors
+    cast = data['credits']['cast']
+    for role_index in range(0, min(len(cast), 5)):
+        # create or find the actor
+        actor_uid = enter_actor(cast[role_index])
+        # insert the role into acted_in
+        character = cast[role_index]['character']
+        db_access.make_role(mid, actor_uid, character)
+
+    # characters are entered, get the poster if available
+    if 'poster_path' in data and data['poster_path'] is not None:
+        poster_url = image_api + data['poster_path']
+        poster_image = Image.open(urllib.request.urlopen(poster_url))
+        # save the poster
+        poster_image.save(os.path.join(POSTER_DIR, mid_filename(mid)))
+        # add path to poster database
+        db_access.make_poster(mid, mid_filename(mid))
+
+    return mid
 
 
 def parse_date(date_string):
@@ -118,57 +188,4 @@ movie_api = 'http://api.themoviedb.org/3/movie/'
 image_api = 'http://image.tmdb.org/t/p/w185/'
 person_api = 'http://api.themoviedb.org/3/person/'
 
-
-movie_id = 550
-for movie_id in range(550, 551):
-    # get a cursor
-    curs = db_connection.cursor()
-    # get the data from api
-    data = send_request(movie_api, movie_id, {'api_key': api_key, 'append_to_response': 'credits'})
-    # get variables
-    title = data['title']
-    # check if movie already entered
-    mid = db_access.lookup_movie(title)
-    if mid is not None:
-        # already did this movie
-        continue
-    # otherwise, enter the movie
-
-    # start with director (see if already in the database)
-    dir_name, dir_id = get_director(data['credits']['crew'])
-    uid = db_access.lookup_user(dir_name)
-    if uid is None:
-        # no user found, must add the user
-        uid = db_access.make_user(dir_name)
-        # and add that user to the director table with DoB
-        dir_dob = get_birthday(dir_id)
-        db_access.make_director(uid, dir_name, dir_dob)
-    else:
-        # already a user now we have to check if the user is in either the actor or director table
-        if db_access.get_director_dob(uid) is None:
-            # not in directors, check actors
-            dir_dob = db_access.get_actor_dob(uid)
-            if dir_dob is None:
-                # not in directors or actors, add to directors
-                dir_dob = get_birthday(dir_id)
-                db_access.make_director(uid, dir_name, dir_dob)
-            else:
-                # director is already in actor, so we can take date of birth from there
-                db_access.make_director(uid, dir_name, dir_dob)
-
-    # now we are guaranteed to have a director, start entering movie
-    released = parse_date(data['release_date'])
-    mid = db_access.make_movie(uid, title, released)
-
-    # movie is in, start adding actors
-    cast = data['credits']['cast']
-    for role_index in range(0, min(len(cast), 5)):
-        # create or find the actor
-        actor_uid = enter_actor(cast[role_index])
-        # insert the role into acted_in
-        character = cast[role_index]['character']
-        db_access.make_role(mid, actor_uid, character)
-
-    """
-    poster_url = image_api + data['poster_path']
-    """
+dummy_user_max_uid = 50000

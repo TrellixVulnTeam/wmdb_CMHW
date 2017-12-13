@@ -4,6 +4,17 @@ from globals import db_connection
 from scripts import util
 
 
+def make_poster(mid, filename):
+    """
+    Enter a poster reference.
+    :param mid: movie id for this poster
+    :param filename: filename for access to image in static/posters
+    """
+    curs = db_connection.cursor()
+    curs.execute('REPLACE INTO POSTER VALUES (?, ?, ?)', (mid, filename, 1))
+    db_connection.commit()
+
+
 def make_role(mid, uid, character):
     """
     Enter a role into the database.
