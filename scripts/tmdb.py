@@ -7,7 +7,7 @@ from PIL import Image
 from urllib3.exceptions import ReadTimeoutError
 
 from entry import mid_filename
-from globals import unix_time, db_connection, POSTER_DIR
+from globals import unix_time, POSTER_DIR
 from scripts import db_access
 
 
@@ -95,12 +95,19 @@ def send_request(api, id_val, payload):
     :return: json data
     """
     # do a loop on the request limiting error code
-    s_code = 429
-    while s_code == 429:
+    while True:
         # loop until we aren't getting the error code
-        response = requests.get(api + str(id_val), params=payload, timeout=0.25)
-        s_code = response.status_code
-    return response.json()
+        try:
+            response = requests.get(api + str(id_val), params=payload, timeout=0.25)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.Timeout:
+            # do nothing for timeout errors (just repeat)
+            continue
+        except Exception as err:
+            # log the error, just in case
+            print(err)
+            continue
 
 
 def get_birthday(id_val):
@@ -181,11 +188,56 @@ def enter_actor(role_json):
     return act_uid
 
 
+def discover_year(year, id_log):
+    """
+    Log into the specified file at most 2000 movie ids from this year. Sorts by vote count, so we get the 1500 most
+    voted-on movies if possible.
+    :param year: year to search
+    :param id_log: open appending file for logging ids
+    :return: number of ids logged
+    """
+    count = 0
+    for i in range(1, 1001):
+        print('year: ' + str(year) + ' page:' + str(i).rjust(5))
+        req_args = {'api_key': api_key,
+                    'sort_by': 'vote_count.desc',
+                    'include_adult': 'false',
+                    'primary_release_year': year,
+                    'include_video': 'false',
+                    'page': str(i)}
+        data_page = send_request(discover_api, '', req_args)
+        for item in data_page['results']:
+            id_log.write(str(item['id']) + '\n')
+            count = count + 1
+            if count > 2000:
+                return count
+        if i == data_page['total_pages']:
+            return count
+    return count
+
+
+def discover_ids():
+    """
+    Log to tmdb_ids.txt ids from every year 1950-present. Uses discover_year to limit count per year.
+    :return: None
+    """
+    count = 0
+    with open('tmdb_ids.txt', 'a') as id_log:
+        for year in range(1950, 2018):
+            print(count)
+            count = count + discover_year(year, id_log)
+            if count > 101000:
+                return
+
+
 with open('tmdb.key', 'r') as key_file:
     api_key = key_file.read().replace('\n', '')
 
 movie_api = 'http://api.themoviedb.org/3/movie/'
 image_api = 'http://image.tmdb.org/t/p/w185/'
 person_api = 'http://api.themoviedb.org/3/person/'
+discover_api = 'http://api.themoviedb.org/3/discover/movie'
 
 dummy_user_max_uid = 50000
+
+discover_ids()

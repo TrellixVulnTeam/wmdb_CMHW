@@ -1,5 +1,5 @@
 import csv
-
+import time
 import random
 import sqlite3
 
@@ -11,14 +11,21 @@ headers = ['Username', 'EmailAddress', 'GivenName', 'Surname', 'Birthday']
 percent_mods = 1
 percent_pass = 2
 
-with open('fng_0.csv', 'r') as csv_file:
+total_processed = 0
+total_skipped = 0
+start_time = time.time()
+
+with open('fng_1.csv', 'r') as csv_file:
     curs = db_connection.cursor()
     reader = csv.DictReader(csv_file, fieldnames=headers)
     for entry in reader:
+        total_processed = total_processed + 1
         try:
+            # generate better username to avoid collision
+            u_name = entry['GivenName'] + '.' + entry['Surname'] + entry['Birthday'].split('/')[2]
+            email = u_name + '@ymdb.com'
             # add the user
-            curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))",
-                         (entry['Username'], entry['EmailAddress']))
+            curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
             uid = curs.lastrowid
             # only give a certain percentage passwords, because it's so expensive to compute
             if random.randint(0, 99) < percent_pass:
@@ -33,4 +40,12 @@ with open('fng_0.csv', 'r') as csv_file:
             db_connection.commit()
         except sqlite3.IntegrityError:
             # just rollback and ignore
+            print('skipped')
+            total_skipped = total_skipped + 1
             db_connection.rollback()
+
+end_time = time.time()
+
+print('total processed: ' + str(total_processed))
+print('total skipped: ' + str(total_skipped))
+print('total time (seconds): ' + str(end_time - start_time))
