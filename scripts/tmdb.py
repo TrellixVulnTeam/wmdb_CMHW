@@ -275,5 +275,7 @@ with open('temp_ids.txt', 'r') as id_file:
         except Exception as err:
             print('failed on tmdb_id ' + str(tmdb_id))
             db_connection.rollback()
-            raise err
+            print(err)
+            # just keep going
+            # raise err
 
