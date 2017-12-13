@@ -1,3 +1,4 @@
+import random
 import urllib
 from datetime import datetime
 
@@ -7,8 +8,11 @@ from PIL import Image
 from urllib3.exceptions import ReadTimeoutError
 
 from entry import mid_filename
-from globals import unix_time, POSTER_DIR
+from globals import unix_time, POSTER_DIR, db_connection
 from scripts import db_access
+
+
+MAX_USER_UID = 1104
 
 
 def enter_movie(movie_id):
@@ -41,10 +45,10 @@ def enter_movie(movie_id):
         db_access.make_director(uid, dir_name, dir_dob)
     else:
         # already a user now we have to check if the user is in either the actor or director table
-        if db_access.get_director_dob(uid) is None:
+        if db_access.get_director_dob(uid) is False:
             # not in directors, check actors
             dir_dob = db_access.get_actor_dob(uid)
-            if dir_dob is None:
+            if dir_dob is False:
                 # not in directors or actors, add to directors
                 dir_dob = get_birthday(dir_id)
                 db_access.make_director(uid, dir_name, dir_dob)
@@ -74,7 +78,29 @@ def enter_movie(movie_id):
         # add path to poster database
         db_access.make_poster(mid, mid_filename(mid))
 
+    enter_reviews(mid, tmdb_id)
+
     return mid
+
+
+def enter_reviews(internal_mid, tmdb_mid):
+    """
+    Enter three reviews for the specified movie by getting info from api.
+    :param internal_mid: mid from our database
+    :param tmdb_mid: id from tmdb
+    :return: number of reviews added
+    """
+    # get the data from api
+    data = send_request(movie_api, tmdb_mid + '/reviews', {'api_key': api_key})
+    # get the total results
+    num_reviews = data['total_results']
+    count = 0
+    uids = random.sample(range(1, MAX_USER_UID), 3)
+    for i in range(0, min(num_reviews, 3)):
+        text = data['results'][i]['content']
+        db_access.make_review(int(internal_mid), uids[i], text, random.randint(0, 5))
+        count = count + 1
+    return count
 
 
 def parse_date(date_string):
@@ -174,10 +200,10 @@ def enter_actor(role_json):
         db_access.make_actor(act_uid, actor_fullname, act_dob)
     else:
         # already a user now we have to check if the user is in either the actor or director table
-        if db_access.get_actor_dob(act_uid) is None:
+        if db_access.get_actor_dob(act_uid) is False:
             # not in actors, check directors
             act_dob = db_access.get_director_dob(act_uid)
-            if act_dob is None:
+            if act_dob is False:
                 # not in directors or actors, add to actors after getting birthdate
                 act_dob = get_birthday(actor_id)
                 db_access.make_actor(act_uid, actor_fullname, act_dob)
@@ -190,7 +216,7 @@ def enter_actor(role_json):
 
 def discover_year(year, id_log):
     """
-    Log into the specified file at most 2000 movie ids from this year. Sorts by vote count, so we get the 1500 most
+    Log into the specified file at most 200 movie ids from this year. Sorts by vote count, so we get the 1500 most
     voted-on movies if possible.
     :param year: year to search
     :param id_log: open appending file for logging ids
@@ -209,20 +235,20 @@ def discover_year(year, id_log):
         for item in data_page['results']:
             id_log.write(str(item['id']) + '\n')
             count = count + 1
-            if count > 2000:
+            if count == 200:
                 return count
         if i == data_page['total_pages']:
             return count
     return count
 
 
-def discover_ids():
+def discover_ids(filename):
     """
     Log to tmdb_ids.txt ids from every year 1950-present. Uses discover_year to limit count per year.
     :return: None
     """
     count = 0
-    with open('tmdb_ids.txt', 'a') as id_log:
+    with open(filename, 'a') as id_log:
         for year in range(1950, 2018):
             print(count)
             count = count + discover_year(year, id_log)
@@ -230,6 +256,7 @@ def discover_ids():
                 return
 
 
+# --------------------------------------------------- begin script --------------------------------------------------- #
 with open('tmdb.key', 'r') as key_file:
     api_key = key_file.read().replace('\n', '')
 
@@ -238,6 +265,15 @@ image_api = 'http://image.tmdb.org/t/p/w185/'
 person_api = 'http://api.themoviedb.org/3/person/'
 discover_api = 'http://api.themoviedb.org/3/discover/movie'
 
-dummy_user_max_uid = 50000
+dummy_user_max_uid = 1104
 
-discover_ids()
+# discover_ids('tmdb_ids.txt')
+with open('temp_ids.txt', 'r') as id_file:
+    for tmdb_id in id_file:
+        try:
+            mid = enter_movie(tmdb_id)
+        except Exception as err:
+            print('failed on tmdb_id ' + str(tmdb_id))
+            db_connection.rollback()
+            raise err
+

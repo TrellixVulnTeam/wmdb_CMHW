@@ -8,14 +8,14 @@ import bcrypt
 from globals import db_connection
 
 headers = ['Username', 'EmailAddress', 'GivenName', 'Surname', 'Birthday']
-percent_mods = 1
-percent_pass = 2
+percent_mods = 10
+percent_pass = 100
 
 total_processed = 0
 total_skipped = 0
 start_time = time.time()
 
-with open('fng_1.csv', 'r') as csv_file:
+with open('fng_0.csv', 'r') as csv_file:
     curs = db_connection.cursor()
     reader = csv.DictReader(csv_file, fieldnames=headers)
     for entry in reader:
@@ -27,11 +27,10 @@ with open('fng_1.csv', 'r') as csv_file:
             # add the user
             curs.execute("INSERT INTO USER VALUES (NULL, ?, ?, strftime('%s', 'now'))", (u_name, email))
             uid = curs.lastrowid
-            # only give a certain percentage passwords, because it's so expensive to compute
-            if random.randint(0, 99) < percent_pass:
-                # generate a password of uidLastname (e.g., 5Eichenhofer)
-                password = str(uid) + entry['Surname']
-                curs.execute("INSERT INTO PASSWORD VALUES (?, ?)", (uid, bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())))
+            # generate a password of uidLastname (e.g., 5Eichenhofer)
+            password = str(uid) + entry['Surname']
+            curs.execute("INSERT INTO PASSWORD VALUES (?, ?)",
+                         (uid, bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())))
             # make some percentage of users a mod
             if random.randint(0, 99) < percent_mods:
                 # make this user a moderator
@@ -43,6 +42,10 @@ with open('fng_1.csv', 'r') as csv_file:
             print('skipped')
             total_skipped = total_skipped + 1
             db_connection.rollback()
+
+        # don't need 100000 anymore
+        if total_processed > 99:
+            break
 
 end_time = time.time()
 

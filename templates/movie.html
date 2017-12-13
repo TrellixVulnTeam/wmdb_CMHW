@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block body %}
+    <table align="center">
+        <tr>
+            <td style="padding-right: 10px">
+                <img src="{{ url_for('static', filename='posters/' + poster) }}" alt="{{ movie_info['title'] }}"/>
+            </td>
+            <td style="padding-left: 10px">
+                <h3>Title: {{ movie_info['title'] }}</h3>
+                <p>Director: {{ movie_info['director'] }}</p>
+                <p>Release Date: {{ movie_info['released'] }}</p>
+            </td>
+        </tr>
+    </table>
+
+    <table style="padding-top: 20px" width="100%" align="center">
+        <thead>
+        <th width="50%">Actor</th>
+        <th width="50%">Character</th>
+        </thead>
+        {% for character_data in character_info %}
+            <tr align="center">
+                <td width="50%">{{ character_data['actor'] }}</td>
+                <td width="50%">{{ character_data['character'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <table style="padding-top: 20px">
+        <thead>
+        <th>Rating</th>
+        <th>Review</th>
+        <th>User</th>
+        </thead>
+        {% for review in review_info %}
+            <tr>
+                <td>{{ review['rating'] }}</td>
+                <td>{{ review['text'] }}</td>
+                <td>{{ review['username'] }}</td>
+            </tr>
+        {% endfor %}
+
+    </table>
+{% endblock %}

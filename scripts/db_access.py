@@ -28,6 +28,20 @@ def make_role(mid, uid, character):
     db_connection.commit()
 
 
+def make_review(mid, uid, text, rating):
+    """
+    Enter a review into the database.
+    :param mid: movie id
+    :param uid: reviewer id
+    :param text: review text
+    :param rating: 0-5 rating
+    :return: None
+    """
+    curs = db_connection.cursor()
+    curs.execute("INSERT INTO REVIEW VALUES (?, ?, ?, ?, strftime('%s', 'now'))", (mid, uid, text, rating))
+    db_connection.commit()
+
+
 def lookup_movie(movie_title):
     """
     Try to find a movie by title. Return null if not found or MID if found.
@@ -101,14 +115,14 @@ def get_director_dob(dir_uid):
     """
     Try to find the director in the director table. Return true or false.
     :param dir_uid: uid for the potential director
-    :return: dob if present or None
+    :return: dob if present or false if not
     """
     curs = db_connection.cursor()
     curs.execute('SELECT UID, DoB FROM DIRECTOR WHERE UID = ?', (dir_uid,))
     rows = curs.fetchone()
     if rows is not None:
         return rows[1]
-    return None
+    return False
 
 
 def make_director(dir_uid, dir_name, dob):
@@ -127,14 +141,14 @@ def get_actor_dob(act_uid):
     """
     Check to see if uid is in actor table, if so return true, otherwise false
     :param act_uid: uid to search
-    :return: dob if present or none if not
+    :return: dob if present or false if not
     """
     curs = db_connection.cursor()
     curs.execute('SELECT UID, DoB FROM ACTOR WHERE UID = ?', (act_uid,))
     rows = curs.fetchone()
     if rows is not None:
         return rows[1]
-    return None
+    return False
 
 
 def make_actor(act_uid, actor_name, dob):

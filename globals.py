@@ -28,3 +28,14 @@ def unix_time(dt):
     """
     epoch = datetime.utcfromtimestamp(0)
     return (dt - epoch).total_seconds()
+
+
+def from_unix_time(seconds):
+    """
+    Convert a unix timestamp into readable string.
+    :param seconds: number of seconds since epoch (unix time)
+    :return: string date
+    """
+    dt = datetime.fromtimestamp(seconds)
+    return dt.strftime('%d %B %Y')
+
