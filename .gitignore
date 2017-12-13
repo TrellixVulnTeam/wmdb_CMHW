@@ -1,6 +1,6 @@
 .idea
 __*
 scripts/api.key
+scripts/tmdb.key
 static/posters
 ym.db*
-
