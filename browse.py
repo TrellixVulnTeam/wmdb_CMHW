@@ -1,10 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for
-from flask_paginate import Pagination, get_page_args
 
-from accounts import check_moderator
-from db_connection import db_connection
+from flask_paginate import Pagination, get_page_args
+import sqlite3
+
+import os
+from flask import Blueprint, render_template, request
 
 browse_api = Blueprint('browse_api', __name__)
+
+db_connection = sqlite3.connect(
+    os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'ym.db'
+    )
+)
 
 
 @browse_api.route("/browse")
@@ -14,20 +22,16 @@ def browse_index():
 
 @browse_api.route("/browse/user")
 def browse_user():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM USER")
+    cur.execute("select * from USER")
 
     rows = cur.fetchall()
 
-    rows_limited = rows[offset:(per_page + offset)]
+    rows_limited = rows[offset:(per_page+offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    cur.close()
+
     return render_template('browse/browse_user.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -36,19 +40,14 @@ def browse_user():
 
 @browse_api.route("/browse/admin")
 def browse_admin():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM ADMIN")
+    cur.execute("select * from ADMIN")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    cur.close()
     return render_template('browse/browse_admin.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -57,19 +56,14 @@ def browse_admin():
 
 @browse_api.route("/browse/director")
 def browse_director():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM DIRECTOR")
+    cur.execute("select * from DIRECTOR")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    cur.close()
     return render_template('browse/browse_director.html',
                            rows=rows_limited,
                            pagination=pagination,
@@ -78,13 +72,9 @@ def browse_director():
 
 @browse_api.route("/browse/actor")
 def browse_actor():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM ACTOR")
+    cur.execute("select * from ACTOR")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
@@ -100,7 +90,7 @@ def browse_actor():
 def browse_movie():
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM MOVIE")
+    cur.execute("select * from MOVIE")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
@@ -114,13 +104,9 @@ def browse_movie():
 
 @browse_api.route("/browse/review")
 def browse_review():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM REVIEW")
+    cur.execute("select * from REVIEW")
 
     rows = cur.fetchall();
     rows_limited = rows[offset:(per_page + offset)]
@@ -134,13 +120,9 @@ def browse_review():
 
 @browse_api.route("/browse/acted_in")
 def browse_acted_in():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM ACTED_IN")
+    cur.execute("select * from ACTED_IN")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
@@ -151,22 +133,18 @@ def browse_acted_in():
                            pagination=pagination,
                            )
 
-
 @browse_api.route("/browse/poster")
 def browse_poster():
-    # check for user authorization
-    if not check_moderator():
-        # deny access if not moderator
-        return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/browse/user'))
     cur = db_connection.cursor()
     page, per_page, offset = get_page_args()
-    cur.execute("SELECT * FROM POSTER")
+    cur.execute("select * from POSTER")
 
     rows = cur.fetchall()
     rows_limited = rows[offset:(per_page + offset)]
     pagination = Pagination(page=page, per_page=per_page, offset=offset, total=len(rows), record_name='rows')
 
-    return render_template('browse/poster.html',
+    return render_template('browse/browse_poster.html',
                            rows=rows_limited,
                            pagination=pagination,
                            )
+
