@@ -95,8 +95,8 @@ def enter_reviews(internal_mid, tmdb_mid):
     # get the total results
     num_reviews = data['total_results']
     count = 0
-    uids = random.sample(range(1, MAX_USER_UID), 15)
-    for i in range(0, min(num_reviews, 15)):
+    uids = random.sample(range(1, MAX_USER_UID), 5)
+    for i in range(0, min(num_reviews, 5)):
         text = data['results'][i]['content']
         db_access.make_review(int(internal_mid), uids[i], text, random.randint(0, 5))
         count = count + 1
@@ -125,14 +125,16 @@ def send_request(api, id_val, payload):
         # loop until we aren't getting the error code
         try:
             response = requests.get(api + str(id_val), params=payload, timeout=0.25)
+
+            if response.status_code == 429:
+                # ignore the request limiting errors
+                continue
+
             response.raise_for_status()
+
             return response.json()
         except requests.exceptions.Timeout:
             # do nothing for timeout errors (just repeat)
-            continue
-        except Exception as err:
-            # log the error, just in case
-            print(err)
             continue
 
 
@@ -277,4 +279,4 @@ with open('temp_ids.txt', 'r') as id_file:
             db_connection.rollback()
             print(err)
             # just keep going
-            raise err
+            # raise err

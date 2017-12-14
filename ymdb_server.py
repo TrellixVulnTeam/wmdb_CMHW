@@ -54,7 +54,8 @@ def view_movie(mid):
     if movie_row[1] is None:
         director_name = 'n/a'
     else:
-        director_name = movie_row[1]
+        curs.execute('SELECT given_name FROM DIRECTOR WHERE UID = ?', (movie_row[1],))
+        director_name = curs.fetchone()[0]
 
     # now set title
     title = movie_row[2]

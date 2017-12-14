@@ -26,17 +26,17 @@
         {% endfor %}
     </table>
 
-    <table style="padding-top: 20px">
+    <table style="padding-top: 20px" width="100%">
         <thead>
-        <th>Rating</th>
-        <th>Review</th>
-        <th>User</th>
+        <th width="25%">Rating</th>
+        <th width="50%">Review</th>
+        <th width="25%">User</th>
         </thead>
         {% for review in review_info %}
             <tr>
-                <td>{{ review['rating'] }}</td>
-                <td>{{ review['text'] }}</td>
-                <td>{{ review['username'] }}</td>
+                <td width="25%">{{ review['rating'] }}</td>
+                <td width="50%">{{ review['text'] }}</td>
+                <td width="25%">{{ review['username'] }}</td>
             </tr>
         {% endfor %}
 
