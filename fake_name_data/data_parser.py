@@ -44,7 +44,7 @@ with open('fng_0.csv', 'r') as csv_file:
             db_connection.rollback()
 
         # don't need 100000 anymore
-        if total_processed > 99:
+        if total_processed > 999:
             break
 
 end_time = time.time()

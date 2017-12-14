@@ -12,7 +12,7 @@ from globals import unix_time, POSTER_DIR, db_connection
 from scripts import db_access
 
 
-MAX_USER_UID = 1104
+MAX_USER_UID = 1003
 
 
 def enter_movie(movie_id):
@@ -95,8 +95,8 @@ def enter_reviews(internal_mid, tmdb_mid):
     # get the total results
     num_reviews = data['total_results']
     count = 0
-    uids = random.sample(range(1, MAX_USER_UID), 3)
-    for i in range(0, min(num_reviews, 3)):
+    uids = random.sample(range(1, MAX_USER_UID), 15)
+    for i in range(0, min(num_reviews, 15)):
         text = data['results'][i]['content']
         db_access.make_review(int(internal_mid), uids[i], text, random.randint(0, 5))
         count = count + 1
@@ -277,5 +277,4 @@ with open('temp_ids.txt', 'r') as id_file:
             db_connection.rollback()
             print(err)
             # just keep going
-            # raise err
-
+            raise err
