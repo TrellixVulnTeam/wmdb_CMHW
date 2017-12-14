@@ -4,6 +4,8 @@ import sqlite3
 
 import os
 from flask import Blueprint, render_template, request
+from accounts import check_moderator
+from globals import db_connection
 
 browse_api = Blueprint('browse_api', __name__)
 
