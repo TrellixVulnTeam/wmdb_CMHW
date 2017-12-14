@@ -3,33 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>YMDB - Search Movies</title>
-    <link rel="stylesheet" type="text/css" href="stylesheet.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/searchPageStyle.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-    
         <body>
             <div class="wrap">
-                <h2 align="center"> Search a movies's average rating </h2> 
+                <h2 align="center">Search a movies's average rating </h2> 
                 <div class="search">
-                    <form action = "url_for('rating')}} method" = "POST"></form>
-                      <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
-                      <button type="submit" class="searchButton">
-                              <i class="fa fa-search"></i>
-                      </button>
-                    </form> 
+                    <form action="{{url_for('search_api.search_rating')}}" method="POST"></form>
+                        <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
+                        <button type="submit" class="searchButton" value="submit">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        <input type="submit" value="go" class="searchButton">
+                    </form>
                 </div>
-                <div class="search_result" style="display:none"> 
-                  <p> Rating for {{movieTitle}}: </p>
-                  <p>{{result["rating"]}}</p>
-                </div>
+                <p>{{movieTile}}</p>
+                <p>{{row['rating']}} </p>
             </div>            
         </form>
 </body>
-
-<script> 
-  $('#searchButton').click(function(){
-    $("search_result").show()
-  })
-</script>
-
 </html>
