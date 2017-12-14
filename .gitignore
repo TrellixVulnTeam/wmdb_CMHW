@@ -3,3 +3,4 @@ __*
 scripts/api.key
 scripts/tmdb.key
 .vscode
+.DS_Store
