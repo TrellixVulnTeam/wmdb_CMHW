@@ -2,11 +2,11 @@ import secrets
 
 from flask import Flask, render_template, abort
 
-from browse import browse_api
-from globals import db_connection, from_unix_time
-from entry import entry_api
-from search import search_api
 from accounts import accounts_api
+from browse import browse_api
+from entry import entry_api
+from globals import db_connection, from_unix_time
+from search import search_api
 
 app = Flask(__name__)
 app.register_blueprint(browse_api)
@@ -18,6 +18,12 @@ app.register_blueprint(accounts_api)
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.after_request
+def add_header(response):
+    response.cache_control.max_age = 0
+    return response
 
 
 @app.route('/<mid>')
@@ -35,7 +41,7 @@ def view_movie(mid):
 
     # check if the movie is in the database
     curs = db_connection.cursor()
-    curs.execute('SELECT MID, director_UID, title, release_date FROM MOVIE WHERE MID = ?', (mid, ))
+    curs.execute('SELECT MID, director_UID, title, release_date FROM MOVIE WHERE MID = ?', (mid,))
     movie_row = curs.fetchone()
     # if not found, then don't render
     if movie_row is None:

@@ -1,26 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>YMDB - Search Movies</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/searchPageStyle.css')}}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-</head>
-        <body>
-            <div class="wrap">
-                <h2 align="center">Search a movies's average rating </h2> 
-                <div class="search">
-                    
-                    <form action="{{url_for('search_api.search_rating')}}" method="POST">
-                        <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
-                        <button type="submit" class="searchButton">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    </form>
-                </div>
-                <p>{{movieTile}}</p>
-                <p>{{row['rating']}} </p>
-            </div>            
-        </form>
-</body>
-</html>
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>Search for a movie's average rating</h3>
+
+    <form action="{{ url_for('search_api.search_rating') }}" method="POST">
+    <p>Enter part of a movie name:</p>
+        <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
+        <p>Upload Bulk Data: <input type="submit" value="Search"/></p>
+    </form>
+
+        <table>
+        {% for data in row %}
+            <tr>
+                <td><a href="{{ url_for('view_movie', mid=data[0]) }}">{{ data[1] }}</a></td>
+                <td>{{ data[2] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

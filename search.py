@@ -19,16 +19,15 @@ def search_index():
 @search_api.route('/search_rating', methods=['GET', 'POST'])
 def search_rating():
     if request.method == 'POST':
-        movie = request.form['movie']
+        movie = '%' + request.form['movie'] + '%'
         with sql.connect(db_path) as con:
             cur = con.cursor()
-            query = "SELECT MOVIE.title, AVG(REVIEW.rating) as rating  FROM MOVIE, REVIEW WHERE MOVIE.MID == REVIEW.MID AND MOVIE.title LIKE ? GROUP BY MOVIE.title"
+            query = "SELECT MOVIE.MID, MOVIE.title, AVG(REVIEW.rating) as rating  FROM MOVIE, REVIEW WHERE MOVIE.MID == REVIEW.MID AND MOVIE.title LIKE ? GROUP BY MOVIE.MID"
             cur.execute(query, (movie,))
             result = cur.fetchall()
         return render_template('search/search_rating.html', row=result, movieTile=movie)
     elif request.method == 'GET':
         return render_template('search/search_rating.html', row='', movieTile='')
-
 
 
 @search_api.route('/search_directory_famous_movies', methods=['POST', 'GET'])
