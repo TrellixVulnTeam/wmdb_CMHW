@@ -1,22 +1,23 @@
- {% extends 'layout.html' %} 
- {% block body %}
-<h2>Searching</h2>
-<p>Click on any table name to begin search the specific information</p>
-<table>
-  <tr>
-    <td>
-      <a href="{{ url_for('search_api.search_rating') }}">Search for the rating of a movie </a> <br>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="{{ url_for('search_api.search_user') }}">Search for the userName for given email </a> <br>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="{{ url_for('search_api.search_directory_famous_movies') }}">Search the movies that a director is famouse for</a>
-    </td>
-  </tr>
-</table>
- {% endblock %}
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>Searching</h3>
+    <p>The following search interfaces are available for everyone:</p>
+    <table cellpadding="5px">
+        <tr>
+            <td>
+                <a href="{{ url_for('search_api.search_rating') }}">Search for the rating of a movie </a> <br>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="{{ url_for('search_api.search_user') }}">Search for users by username.</a> <br>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <a href="{{ url_for('search_api.search_directory_famous_movies') }}">Search the movies that a director
+                    is famouse for</a>
+            </td>
+        </tr>
+    </table>
+{% endblock %}

@@ -25,56 +25,34 @@ def search_rating():
             query = "SELECT MOVIE.MID, MOVIE.title, AVG(REVIEW.rating) as rating  FROM MOVIE, REVIEW WHERE MOVIE.MID == REVIEW.MID AND MOVIE.title LIKE ? GROUP BY MOVIE.MID"
             cur.execute(query, (movie,))
             result = cur.fetchall()
-        return render_template('search/search_rating.html', row=result, movieTile=movie)
+        return render_template('search/search_rating.html', row=result)
     elif request.method == 'GET':
-        return render_template('search/search_rating.html', row='', movieTile='')
+        return render_template('search/search_rating.html', row='')
 
 
 @search_api.route('/search_directory_famous_movies', methods=['POST', 'GET'])
 def search_directory_famous_movies():
     if request.method == 'POST':
-        director = request.form['directorName']
+        director = '%' + request.form['directorName'] + '%'
         with sql.connect(db_path) as con:
             cur = con.cursor()
-            query = "SELECT MOVIE.title, DIRECTOR.given_name FROM MOVIE, DIRECTOR WHERE MID = famous_for_MID AND DIRECTOR.given_name LIKE ?"
+            query = "SELECT MOVIE.MID, MOVIE.title, DIRECTOR.given_name FROM MOVIE, DIRECTOR WHERE MID = famous_for_MID AND DIRECTOR.given_name LIKE ?"
             cur.execute(query, (director,))
             rows = cur.fetchall()
-        return render_template('search/search_directorMovie.html', row=rows, directorName=director)
+        return render_template('search/search_directorMovie.html', row=rows)
     elif request.method == 'GET':
-        return render_template('search/search_directorMovie.html', row='', directorName='')
+        return render_template('search/search_directorMovie.html', row='')
+
 
 @search_api.route('/search_user', methods=['POST', 'GET'])
 def search_user():
     if request.method == 'GET':
-        return render_template('search/search_user.html', result='', user_email='')
+        return render_template('search/search_user.html', result='')
     elif request.method == 'POST':
-        user_email = request.form['email']
+        user = '%' + request.form['u_name'] + '%'
         with sql.connect(db_path) as con:
             cur = con.cursor()
-            query = "SELECT u_name, email FROM USER WHERE u_name LIKE ?"
-            cur.execute(query, (user_email,))
+            query = "SELECT UID, u_name, email FROM USER WHERE u_name LIKE ?"
+            cur.execute(query, (user,))
             result = cur.fetchall()
-        return render_template('search/search_user.html', result=result, user_email=user_email)
-
-
-
-# @search_api.route('/search/director', methods=['POST'])
-# def search_director_famours_movie():
-#     director = request.form['directorName']
-#     with sql.connect(db_path) as con:
-#         cur = con.cursor()
-#         query = "SELECT MOVIE.title, DIRECTOR.given_name FROM MOVIE, DIRECTOR WHERE MID = famous_for_MID AND DIRECTOR.given_name LIKE ?", (director,)
-#         cur.execute(query)
-#         rows = cur.fetchall()
-#     return render_template('search/search_directorMoive.html', rows=rows, directorName=director)
-
-
-# @search_api.route('/search/user', methods=['POST'])
-# def search_user():
-#     user_email = request.form['email']
-#     with sql.connect(db_path) as con:
-#         cur = con.cursor()
-#         query = "SELECT u_name, email FROM USER WHERE u_name LIKE ?", (user_email)
-#         cur.execute(query)
-#         result = cur.fetchall()
-#     return render_template('search/search_userName.html', userName=result, userEmail=user_email)
+        return render_template('search/search_user.html', result=result)

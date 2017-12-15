@@ -3,12 +3,12 @@
     <h3>Search for a movie's average rating</h3>
 
     <form action="{{ url_for('search_api.search_rating') }}" method="POST">
-    <p>Enter part of a movie name:</p>
+        <p>Enter part of a movie name:</p>
         <input type="text" class="searchTerm" name="movie" placeholder="Type in the movie name you want to search">
-        <p>Upload Bulk Data: <input type="submit" value="Search"/></p>
+        <input type="submit" value="Search"/>
     </form>
 
-        <table>
+    <table>
         {% for data in row %}
             <tr>
                 <td><a href="{{ url_for('view_movie', mid=data[0]) }}">{{ data[1] }}</a></td>

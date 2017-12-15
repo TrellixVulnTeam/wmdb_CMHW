@@ -1,28 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>YMDB - Search Movies</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/searchPageStyle.css')}}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    
-        <body>
-            <div class="wrap">
-                <h2 align="center"> Saerch user's name from email</address></h2> 
-                <div class="search">
-                    
-                    <form action="{{url_for('search_api.search_user')}}" method="POST">
-                        <input type="text" class="searchTerm" name="email" placeholder="Type in the user email you want to search">
-                        <button type="submit" class="searchButton">
-                            <i class="fa fa-search"></i>
-                        </button>
-                    </form>
-                </div>
-                <p> {{user_email}} </p>
-                <p> {{result['u_name']}} </p>
-            </div>            
-        </form>
-</body>
-<script> 
-</script>
-</html>
+{% extends 'layout.html' %}
+{% block body %}
+    <h3>Search for a user by username.</h3>
+
+    <form action="{{ url_for('search_api.search_user') }}" method="POST">
+        <p>Enter a user's username:</p>
+        <input type="text" name="u_name" placeholder="username">
+        <input type="submit" value="Search"/>
+    </form>
+
+    <table>
+        {% for data in result %}
+            <tr>
+                <td>{{ data[0] }}</td>
+                <td>{{ data[1] }}</td>
+                <td>{{ data[2] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
