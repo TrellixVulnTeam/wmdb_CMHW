@@ -20,7 +20,7 @@ Each interface is linked at the top of our web page. See the section on user aut
 The search interface has the following three options:
 * searching for movies by name to get their average rating (multi-table and aggregate)
 * searching for users by username (single table)
-* searching for movies that are attributed as a director's "famous for" movie
+* searching for movies that are attributed as a director's "famous for" movie (multi-table)
 
 Each search page is a simple form and results in a table. Here is a screenshot of the director search:
 ![Director Search](screenshots/search_director.png)

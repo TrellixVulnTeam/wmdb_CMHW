@@ -20,11 +20,12 @@ def index():
     return render_template('index.html')
 
 
+""" use this to disable caching (useful for debugging)
 @app.after_request
 def add_header(response):
     response.cache_control.max_age = 0
     return response
-
+"""
 
 @app.route('/<mid>')
 def view_movie(mid):
