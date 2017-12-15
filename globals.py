@@ -26,6 +26,8 @@ def unix_time(dt):
     :param dt: datetime object to convert
     :return: seconds from epoch (unix time), may be positive or negative
     """
+    if dt is None:
+        return None
     epoch = datetime.utcfromtimestamp(0)
     return (dt - epoch).total_seconds()
 
@@ -36,6 +38,8 @@ def from_unix_time(seconds):
     :param seconds: number of seconds since epoch (unix time)
     :return: string date
     """
+    if seconds is None:
+        return ""
     if seconds < 0:
         dt = datetime(1970, 1, 1) + timedelta(seconds=seconds)
     else:

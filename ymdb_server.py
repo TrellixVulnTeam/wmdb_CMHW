@@ -182,6 +182,10 @@ def make_review(mid):
         return render_template('movie.html', message=message), 400
 
 
+db_connection.execute('PRAGMA foreign_keys = ON')
+app.secret_key = secrets.token_hex(16)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+
 if __name__ == '__main__':
     # enable foreign key on all database connections
     db_connection.execute('PRAGMA foreign_keys = ON')
@@ -193,4 +197,4 @@ if __name__ == '__main__':
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
     # run the app (flask)
-    app.run()
+    app.run(host='0.0.0.0')
