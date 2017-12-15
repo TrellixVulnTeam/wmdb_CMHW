@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 global db_connection
 
@@ -36,6 +36,9 @@ def from_unix_time(seconds):
     :param seconds: number of seconds since epoch (unix time)
     :return: string date
     """
-    dt = datetime.fromtimestamp(seconds)
+    if seconds < 0:
+        dt = datetime(1970, 1, 1) + timedelta(seconds=seconds)
+    else:
+        dt = datetime.fromtimestamp(seconds)
     return dt.strftime('%d %B %Y')
 

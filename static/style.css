@@ -21,6 +21,11 @@ h2 {
     font-size: 1.2em;
 }
 
+.reviews {
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
 .page {
     margin: 2em auto;
     width: 1000px;

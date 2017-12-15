@@ -72,7 +72,7 @@ def view_movie(mid):
     actors = []
     characters = []
     for row in character_rows:
-        curs.execute('SELECT given_name FROM ACTOR WHERE UID = ?', (row[0],))
+        curs.execute('SELECT name FROM ACTOR WHERE UID = ?', (row[0],))
         actors.append(curs.fetchone()[0])
         characters.append(row[1])
 

@@ -15,28 +15,30 @@
 
     <table style="padding-top: 20px" width="100%" align="center">
         <thead>
-        <th width="50%">Actor</th>
-        <th width="50%">Character</th>
+        <th width="49%" style="text-align: right">Actor</th>
+        <td width="2%"></td>
+        <th width="49%" style="text-align: left">Character</th>
         </thead>
         {% for character_data in character_info %}
             <tr align="center">
-                <td width="50%">{{ character_data['actor'] }}</td>
-                <td width="50%">{{ character_data['character'] }}</td>
+                <td width="49%" style="text-align: right">{{ character_data['actor'] }}</td>
+                <td width="2%"></td>
+                <td width="49%" style="text-align: left">{{ character_data['character'] }}</td>
             </tr>
         {% endfor %}
     </table>
 
-    <table style="padding-top: 20px" width="100%">
-        <thead>
-        <th width="25%">Rating</th>
-        <th width="50%">Review</th>
-        <th width="25%">User</th>
+    <table class="reviews" style="padding-top: 20px" width="100%" align="center">
+        <thead class="reviews">
+        <th width="25%" class="reviews">Rating</th>
+        <th width="50%" class="reviews">Review</th>
+        <th width="25%" class="reviews">User</th>
         </thead>
         {% for review in review_info %}
-            <tr>
-                <td width="25%">{{ review['rating'] }}</td>
-                <td width="50%">{{ review['text'] }}</td>
-                <td width="25%">{{ review['username'] }}</td>
+            <tr align="center" class="reviews">
+                <td width="25%" class="reviews">{{ review['rating'] }}</td>
+                <td width="50%" class="reviews">{{ review['text'] }}</td>
+                <td width="25%" class="reviews">{{ review['username'] }}</td>
             </tr>
         {% endfor %}
 

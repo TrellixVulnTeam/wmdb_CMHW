@@ -1,4 +1,5 @@
 <!doctype html>
+<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
 <title>YMDB - CS 564</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <div class=page>
@@ -13,8 +14,9 @@
             {% endif %}
         </p>
         <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('browse_api.browse_index') }}">Browsing</a>
+        <a href="{{ url_for('search_api.search_index') }}">Search</a>
         <a href="{{ url_for('entry_api.entry_index') }}">Data Entry</a>
+        <a href="{{ url_for('browse_api.browse_index') }}">Browsing</a>
     </div>
     <p>This is a web interface to project database: Your Movie Database (YMDB). It contains information on movies,
         actors, directors, and user reviews. Here is the schema for the underlying database:</p>

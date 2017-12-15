@@ -8,8 +8,7 @@
     <table border=1>
         <thead>
         <td>UID</td>
-        <td>Stage Name</td>
-        <td>Given Name</td>
+        <td>Name</td>
         <td>Date of Birth</td>
         </thead>
 
@@ -17,8 +16,7 @@
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
+                <td>{{ time(row[2]) }}</td>
             </tr>
         {% endfor %}
     </table>

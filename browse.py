@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for
 from flask_paginate import Pagination, get_page_args
 
 from flask import Blueprint, render_template, request
-from globals import db_connection
+from globals import db_connection, from_unix_time
 from accounts import check_moderator
 
 browse_api = Blueprint('browse_api', __name__)
@@ -32,6 +32,7 @@ def browse_user():
     return render_template('browse/browse_user.html',
                            rows=rows_limited,
                            pagination=pagination,
+                           time=from_unix_time
                            )
 
 
@@ -74,6 +75,7 @@ def browse_director():
     return render_template('browse/browse_director.html',
                            rows=rows_limited,
                            pagination=pagination,
+                           time=from_unix_time
                            )
 
 
@@ -94,6 +96,7 @@ def browse_actor():
     return render_template('browse/browse_actor.html',
                            rows=rows_limited,
                            pagination=pagination,
+                           time=from_unix_time
                            )
 
 
@@ -110,6 +113,7 @@ def browse_movie():
     return render_template('browse/browse_movie.html',
                            rows=rows_limited,
                            pagination=pagination,
+                           time=from_unix_time
                            )
 
 
@@ -130,6 +134,7 @@ def browse_review():
     return render_template('browse/browse_review.html',
                            rows=rows_limited,
                            pagination=pagination,
+                           time=from_unix_time
                            )
 
 
