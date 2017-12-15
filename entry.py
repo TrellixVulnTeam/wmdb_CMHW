@@ -205,9 +205,9 @@ def director_entry():
             # check that uid is just numbers, show error if not
             message = "uid must be numeric"
             return render_template('entry/director.html', message=message), 400
-        if not (re.match(r'[0-9]+', famous_for) or famous_for == "NULL"):
+        if not (famous_for is None or re.match(r'[0-9]+', famous_for) or famous_for == ""):
             # check that famous_for is a proper MID or NULL, show error if not
-            message = "famous for mid must be numeric or NULL"
+            message = "famous for mid must be numeric or empty"
             return render_template('entry/director.html', message=message), 400
         if (not re.match(r'[a-zA-z ]+', given_name)) or len(given_name) > 40:
             # check that given name contains only letters and spaces and is no more than 40 characters
