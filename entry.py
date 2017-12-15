@@ -112,12 +112,9 @@ def admin_entry():
     message = None
     # get all users who are not already admins to prompt entry form
     curs = db_connection.cursor()
-    curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ADMIN) ORDER BY UID")
-    # store viable users for displaying in template
-    users = curs.fetchall()
     if request.method == 'GET':
-        # respond to get requests with blank message and dropdown of potential admin users
-        return render_template('entry/admin.html', users=users, message=message)
+        # respond to get requests with blank message
+        return render_template('entry/admin.html', message=message)
     elif request.method == 'POST':
         # handle post requests as entered admin data
         try:
@@ -127,15 +124,15 @@ def admin_entry():
         except KeyError:
             # show error if form doesn't contain required fields
             message = 'bad form data'
-            return render_template('entry/admin.html', users=users, message=message), 400
+            return render_template('entry/admin.html', message=message), 400
         if not re.match(r'[0-9]+', uid):
             # make sure that uid is just numbers
             message = "uid must be numeric"
-            return render_template('entry/admin.html', users=users, message=message), 400
+            return render_template('entry/admin.html', message=message), 400
         if (not re.match(r'[a-zA-z_]+', position)) or len(position) > 20:
             # ensure position is only alphanumeric/underscore and less than 21 characters
             message = "position must be alpha characters and underscores and at most 20 characters"
-            return render_template('entry/admin.html', users=users, message=message), 400
+            return render_template('entry/admin.html', message=message), 400
         try:
             # try to insert new admin
             curs.execute("INSERT INTO ADMIN VALUES (?, ?)", (uid, position))
@@ -146,16 +143,13 @@ def admin_entry():
             inserted_row = curs.execute("SELECT * FROM ADMIN WHERE UID=?", (uid,))
             # show success message with inserted admin data
             message = 'inserted new admin successfully: ' + str(inserted_row.fetchone())
-            # get updated list of potential admins for displaying on next form
-            curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ADMIN) ORDER BY UID")
-            users = curs.fetchall()
             # show success message and new list of users
-            return render_template('entry/admin.html', users=users, message=message), 201
+            return render_template('entry/admin.html', message=message), 201
         except sqlite3.Error as err:
             # catch errors (like existing uids in admin and nonexistant uids from user)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/admin.html', users=users, message=message), 400
+            return render_template('entry/admin.html', message=message), 400
     else:
         # if not get or post, abort (should never happen, but just in case)
         abort(405)
@@ -177,16 +171,9 @@ def director_entry():
     message = None
     # get users who are not already directors for prompting form
     curs = db_connection.cursor()
-    curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM DIRECTOR) ORDER BY UID")
-    # store potential users to add to directors
-    users = curs.fetchall()
-    # get a list of all movie ids/titles to show potential famous_for movies
-    curs.execute("SELECT MID, title FROM MOVIE")
-    # store potential movies for famous_for movies
-    movies = curs.fetchall()
     if request.method == 'GET':
         # handle get requests with blank message and potential users/movies
-        return render_template('entry/director.html', users=users, movies=movies, message=message)
+        return render_template('entry/director.html', message=message)
     elif request.method == 'POST':
         # handle post requests as data entry
         try:
@@ -199,23 +186,23 @@ def director_entry():
         except KeyError:
             # show error message if any form fields are missing
             message = 'bad form data'
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
         except ValueError:
             # show error message if the date formatting fails
             message = 'bad date format'
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
         if not re.match(r'[0-9]+', uid):
             # check that uid is just numbers, show error if not
             message = "uid must be numeric"
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
         if not (re.match(r'[0-9]+', famous_for) or famous_for == "NULL"):
             # check that famous_for is a proper MID or NULL, show error if not
             message = "famous for mid must be numeric or NULL"
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
         if (not re.match(r'[a-zA-z ]+', given_name)) or len(given_name) > 40:
             # check that given name contains only letters and spaces and is no more than 40 characters
             message = "name must be alpha characters and spaces and at most 40 characters"
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
         try:
             # try to insert the director values
             if famous_for == "NULL":
@@ -231,17 +218,14 @@ def director_entry():
             inserted_row = curs.execute("SELECT * FROM DIRECTOR WHERE UID=?", (uid,))
             # create success message with inserted data
             message = 'inserted new director successfully: ' + str(inserted_row.fetchone())
-            # get an updated list of users who could become directors
-            curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM DIRECTOR) ORDER BY UID")
-            users = curs.fetchall()
             # show the template with potential users, movie ids, and with success message
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 201
+            return render_template('entry/director.html', message=message), 201
         except sqlite3.Error as err:
             # catch sql errors, usually the foreign key constraint and unique constraint
             db_connection.rollback()
             # show error message
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/director.html', users=users, movies=movies, message=message), 400
+            return render_template('entry/director.html', message=message), 400
     else:
         # if not get or post, abort (should never happen, but just in case)
         abort(405)
@@ -250,7 +234,7 @@ def director_entry():
 @entry_api.route("/entry/actor", methods=['POST', 'GET'])
 def actor_entry():
     """
-    Handle actor entry requests. Post form must contain uid, stage_name, given_name, and dob. dob must be in format of
+    Handle actor entry requests. Post form must contain uid, and dob. dob must be in format of
     YYYY-mm-dd for parsing. Generates list of potential users for promotion to actor.
     :return: rendered template including list of users who are not actors
     """
@@ -262,49 +246,37 @@ def actor_entry():
     message = None
     # get list of users who are not already actors for prompting form
     curs = db_connection.cursor()
-    curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ACTOR) ORDER BY UID")
-    # store candidate users
-    users = curs.fetchall()
     if request.method == 'GET':
         # handle get requests with empty message and list of users
-        return render_template('entry/actor.html', users=users, message=message)
+        return render_template('entry/actor.html', message=message)
     elif request.method == 'POST':
         # handle post requests as data entry
         try:
             # try to get the required field forms
             uid = request.form['uid']
-            stage_name = request.form['stage_name']
-            given_name = request.form['given_name']
+            name = request.form['name']
             # cast dob to datetime for later converting to unix time
             dob = datetime.strptime(request.form['dob'], '%Y-%m-%d')
         except KeyError:
             # show error on missing field forms
             message = 'bad form data'
-            return render_template('entry/actor.html', users=users, message=message), 400
+            return render_template('entry/actor.html', message=message), 400
         except ValueError:
             # show error for bad date formatting
             message = 'bad date format'
-            return render_template('entry/actor.html', users=users, message=message), 400
+            return render_template('entry/actor.html', message=message), 400
         if not re.match(r'[0-9]+', uid):
             # check that user id is only numeric
             message = "uid must be numeric"
-            return render_template('entry/actor.html', users=users, message=message), 400
-        if (not stage_name == "") and ((not re.match(r'[a-zA-z ]+', stage_name)) or len(stage_name) > 40):
-            # check that stage name is either empty or only alphabetical characters
-            message = "stage name must be alpha characters and spaces and at most 40 characters"
-            return render_template('entry/actor.html', users=users, message=message), 400
-        if (not re.match(r'[a-zA-z ]+', given_name)) or len(given_name) > 40:
+            return render_template('entry/actor.html', message=message), 400
+        if (not re.match(r'[a-zA-z ]+', name)) or len(name) > 40:
             # check validation on given name too
             message = "name must be alpha characters and spaces and at most 40 characters"
-            return render_template('entry/actor.html', users=users, message=message), 400
+            return render_template('entry/actor.html', message=message), 400
         try:
             # try to insert actor
-            if stage_name == "":
-                # insert on case that given name is same as stage name
-                curs.execute("INSERT INTO ACTOR VALUES (?, NULL, ?, ?)", (uid, given_name, unix_time(dob)))
-            else:
-                # insert on case of specified stage name
-                curs.execute("INSERT INTO ACTOR VALUES (?, ?, ?, ?)", (uid, stage_name, given_name, unix_time(dob)))
+            # insert on case that given name is same as stage name
+            curs.execute("INSERT INTO ACTOR VALUES (?, ?, ?)", (uid, name, unix_time(dob)))
             db_connection.commit()
             # get the uid of the newly added actor
             uid = curs.lastrowid
@@ -312,16 +284,13 @@ def actor_entry():
             inserted_row = curs.execute("SELECT * FROM ACTOR WHERE UID=?", (uid,))
             # success message with added row
             message = 'inserted new actor successfully: ' + str(inserted_row.fetchone())
-            # get new list of potential users to add
-            curs.execute("SELECT UID, u_name FROM USER WHERE USER.UID NOT IN (SELECT UID FROM ACTOR) ORDER BY UID")
-            users = curs.fetchall()
             # show success message and new list of users
-            return render_template('entry/actor.html', users=users, message=message), 201
+            return render_template('entry/actor.html', message=message), 201
         except sqlite3.Error as err:
             # handle errors for key constraint (foreign and unique)
             db_connection.rollback()
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/actor.html', users=users, message=message), 400
+            return render_template('entry/actor.html', message=message), 400
     else:
         # if not get or post, abort (should never happen, but just in case)
         abort(405)
@@ -345,12 +314,9 @@ def movie_entry():
     curs = db_connection.cursor()
     curs.execute("SELECT DIRECTOR.UID, u_name FROM USER, DIRECTOR WHERE USER.UID == DIRECTOR.UID ORDER BY DIRECTOR.UID")
     directors = curs.fetchall()
-    # get potential admins for listing in form
-    curs.execute("SELECT ADMIN.UID, u_name FROM USER, ADMIN WHERE USER.UID == ADMIN.UID ORDER BY ADMIN.UID")
-    admins = curs.fetchall()
     if request.method == 'GET':
         # handle get requests with empty message and list of directors and admins
-        return render_template('entry/movie.html', directors=directors, admins=admins, message=message)
+        return render_template('entry/movie.html', directors=directors, message=message)
     elif request.method == 'POST':
         # handle post requests as data entry
         try:
@@ -359,27 +325,23 @@ def movie_entry():
             title = request.form['title']
             # parse date into datetime object
             release_date = datetime.strptime(request.form['release_date'], '%Y-%m-%d')
-            entered_uid = request.form['entered_uid']
+            entered_uid = session['uid']
         except KeyError:
             # show error message if any fields missing
             message = 'bad form data'
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+            return render_template('entry/movie.html', directors=directors, message=message), 400
         except ValueError:
             # show error message if unable to parse date
             message = 'bad date format'
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+            return render_template('entry/movie.html', directors=directors, message=message), 400
         if not re.match(r'[0-9]+', director_uid):
             # show error message if director uid is not strictly numeric
             message = "director uid must be numeric"
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+            return render_template('entry/movie.html', directors=directors, message=message), 400
         if len(title) < 1 or len(title) > 40:
             # show error message if title is empty or longer than 40 characters
             message = "title must be between 1 and 40 characters long (inclusive)"
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
-        if not re.match(r'[0-9]+', entered_uid):
-            # show error message if entered_by uid is not strictly numeric
-            message = "entered uid must be numeric"
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+            return render_template('entry/movie.html', directors=directors, message=message), 400
         try:
             # try to insert the new movie entry
             # pass null into MID to let dbms decide next value
@@ -392,13 +354,13 @@ def movie_entry():
             inserted_row = curs.execute("SELECT * FROM MOVIE WHERE MID=?", (mid,))
             message = 'inserted new movie successfully: ' + str(inserted_row.fetchone())
             # display success message and already found list of admins and directors
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 201
+            return render_template('entry/movie.html', directors=directors, message=message), 201
         except sqlite3.Error as err:
             # handle error (like director foreign key constraint or entered_by foreign key)
             db_connection.rollback()
             # show error message on bad value
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/movie.html', directors=directors, admins=admins, message=message), 400
+            return render_template('entry/movie.html', directors=directors, message=message), 400
     else:
         # if not get or post, abort (should never happen, but just in case)
         abort(405)

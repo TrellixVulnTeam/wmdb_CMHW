@@ -16,7 +16,6 @@ def search_index():
     return "search index"
 
 
-
 @search_api.route('/search_rating', methods=['GET', 'POST'])
 def search_rating():
     if request.method == 'POST':

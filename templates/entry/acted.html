@@ -4,17 +4,9 @@
         <h3>Add a New Actor - Movie Role:</h3>
         <p>Note: will fail if MID, UID combination already exists.</p>
         <p>MID - movie id (of movie that this actor had a role in)</p>
-        <select name="mid">
-            {% for movie in movies %}
-                <option value="{{ movie[0] }}">{{ movie[0] }} - {{ movie[1] }}</option>
-            {% endfor %}
-        </select>
+        <input type="number" name="mid"/>
         <p>UID - actor who played this roll</p>
-        <select name="uid">
-            {% for user in users %}
-                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
-            {% endfor %}
-        </select>
+        <input type="number" name="uid"/>
         <p>character_role - name of the role played by this actor in this movie</p>
         <input type="text" name="character_role"/>
         <p>Add Role: <input type="submit" value="Submit"/></p>

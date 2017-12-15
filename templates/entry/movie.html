@@ -12,12 +12,6 @@
         <input type="text" name="title"/>
         <p>release_date - date of movie release</p>
         <input type="date" name="release_date"/>
-        <p>entered_by - user id of admin who is making this entry (must exist in ADMIN relation)</p>
-        <select name="entered_uid">
-            {% for admin in admins %}
-                <option value="{{ admin[0] }}">{{ admin[0] }} - {{ admin[1] }}</option>
-            {% endfor %}
-        </select>
         <p>Add Movie: <input type="submit" value="Submit"/></p>
         {% if message is not none %}
             <p>Result: {{ message }}</p>

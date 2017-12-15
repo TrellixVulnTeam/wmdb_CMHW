@@ -3,15 +3,9 @@
     <form action="{{ url_for('entry_api.actor_entry') }}" method="POST">
         <h3>Designate a User as an Actor:</h3>
         <p>UID - id for user to specify (must exist in USER table)</p>
-        <select name="uid">
-            {% for user in users %}
-                <option value="{{ user[0] }}">{{ user[0] }} - {{ user[1] }}</option>
-            {% endfor %}
-        </select>
-        <p>stage_name - actor's stage name (if different from given name)</p>
-        <input type="text" name="stage_name"/>
-        <p>given_name - actor's given name</p>
-        <input type="text" name="given_name"/>
+        <input type="number" name="uid"/>
+        <p>name - actor's name</p>
+        <input type="text" name="name"/>
         <p>DoB - date of birth</p>
         <input type="date" name="dob"/>
         <p>Add Actor: <input type="submit" value="Submit"/></p>

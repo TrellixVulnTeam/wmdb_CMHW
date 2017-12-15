@@ -1,3 +1,16 @@
 {% extends 'layout.html' %}
 {% block body %}
+    <p>
+        Welcome to YMDB. All data provided by <a href="https://www.themoviedb.org">The Movie Database</a>. It contains a
+        database with the above-described schema to deliver information about movies, actors, directors, and reviews.
+        Use the navigation links at the top of the page to
+        <a href="{{ url_for('search_api.search_index') }}">search data</a>,
+        <a href="{{ url_for('search_api.search_index') }}">enter data</a>, and
+        <a href="{{ url_for('browse_api.browse_index') }}">browse</a> the data tables.
+        Some of the features require user authentication. Without authentication, you can browse search and browse
+        <a href="{{ url_for('browse_api.browse_movie') }}">movies</a>. As a normal user you can also create a review on
+        a movie's detail page. As a moderator, you can browse all tables. Moderators can also use the data entry
+        interface for all tables except USER and ADMIN. Admin users can use the data entry interface for all tables and
+        can also use the bulk data entry interface.
+    </p>
 {% endblock %}
