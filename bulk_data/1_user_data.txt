@@ -1,0 +1,9 @@
+u_name	email
+bulk_user_test1	bulk_user_email1@gmail.com
+bulk_user_test2	bulk_user_email2@gmail.com
+bulk_user_test3	bulk_user_email3@gmail.com
+bulk_user_test4	bulk_user_email4@gmail.com
+bulk_user_test5	bulk_user_email5@gmail.com
+bulk_user_test6	bulk_user_email6@gmail.com
+bulk_user_test7	bulk_user_email7@gmail.com
+bulk_user_test8	bulk_user_email8@gmail.com

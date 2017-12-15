@@ -1,0 +1,6 @@
+uid	position
+50	moderator
+51	moderator
+52	moderator
+53	moderator
+54	moderator

@@ -1,0 +1,3 @@
+mid	uid	character_role
+1	4	some fake background character
+2	10	another bulk character

@@ -3,7 +3,7 @@
     <form action="{{ url_for('entry_api.bulk_entry') }}" method="POST" enctype=multipart/form-data>
         <h3>Upload a Bulk Data File:</h3>
         <p>NOTE: you cannot bulk load poster data</p>
-        <p>RELATION - name of relation to enter data</p>
+        <p>relation - name of relation to enter data</p>
         <select name="relation">
             <option value="user">USER</option>
             <option value="admin">ADMIN</option>

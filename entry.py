@@ -15,8 +15,17 @@ from globals import db_connection, unix_time, POSTER_DIR
 entry_api = Blueprint('entry_api', __name__)
 
 
+IMAGES = {'png', 'jpg', 'jpeg'}
+BULK_DATA = {'txt', 'csv'}
+
+
+def allowed_file(filename, extensions):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in extensions
+
+
 def mid_filename(mid):
-    return '{:08x}'.format(mid) + '.png'
+    return '{:08x}'.format(int(mid)) + '.png'
 
 
 @entry_api.route("/entry")
@@ -521,17 +530,15 @@ def poster_entry():
         return redirect(url_for('accounts_api.forbidden', account_type='moderator', resource='/entry/poster'))
     # get the list of movies for dropdown
     curs = db_connection.cursor()
-    curs.execute('SELECT MID, title FROM MOVIE')
-    movies = curs.fetchall()
     if request.method == 'GET':
         # handle get requests with blank message and movie dropdown
-        return render_template('entry/poster.html', movies=movies, message=None, image_name=None)
+        return render_template('entry/poster.html', message=None, image_name=None)
     elif request.method == 'POST':
         # handle post requests as upload
         if 'img' not in request.files:
             # show error if no file in post data
             message = 'no file uploaded'
-            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+            return render_template('entry/poster.html', message=message, image_name=None), 400
         try:
             # try to get field and file
             mid = request.form['mid']
@@ -539,17 +546,21 @@ def poster_entry():
         except KeyError:
             # show error if file not uploaded, or form data bad
             message = 'bad form data'
-            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
-        # TODO: check file type (not just extension) for security
+            return render_template('entry/poster.html', message=message, image_name=None), 400
         if not re.match(r'[0-9]+', mid):
             # test for mid being strictly numeric
             message = 'mid must be numeric'
-            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+            return render_template('entry/poster.html', message=message, image_name=None), 400
         # check for file validity
         if img.filename == '':
             # show error for empty filename
             message = 'no file selected'
-            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+            return render_template('entry/poster.html', message=message, image_name=None), 400
+        # check that it is an image file
+        if not allowed_file(img.filename, IMAGES):
+            # not image file
+            message = 'must be one of these filetypes: ' + str(IMAGES)
+            return render_template('entry/poster.html', message=message, image_name=None), 400
         try:
             # create new filename
             filename = mid_filename(mid)
@@ -561,7 +572,7 @@ def poster_entry():
             db_connection.rollback()
             # show error message on bad value
             message = 'error inserting tuple (' + str(err) + ')'
-            return render_template('entry/poster.html', movies=movies, message=message, image_name=None), 400
+            return render_template('entry/poster.html', message=message, image_name=None), 400
         if img:
             # save the file
             img.save(os.path.join(POSTER_DIR, filename))
@@ -771,8 +782,8 @@ def bulk_actor(file):
     dict_reader = csv.DictReader(file, delimiter='\t', quoting=csv.QUOTE_NONE)
     try:
         # trying for chance that date format is bad
-        tuples = [(entry['uid'], entry['stage_name'], entry['given_name'],
-                   unix_time(datetime.strptime(entry['DoB'], '%Y-%m-%d'))) for entry in dict_reader]
+        tuples = [(entry['uid'], entry['name'], unix_time(datetime.strptime(entry['DoB'], '%Y-%m-%d')))
+                  for entry in dict_reader]
     except ValueError:
         # show error for bad formatted date
         raise KeyError('bad date format in csv, must be YYYY-mm-dd')
