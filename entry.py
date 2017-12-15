@@ -1,3 +1,4 @@
+import codecs
 import csv
 import os
 import re
@@ -617,7 +618,7 @@ def bulk_entry():
         try:
             # try to get form data
             relation = request.form['relation']
-            csv_data = TextIOWrapper(request.files['csv_data'], encoding='utf-8')
+            csv_data = codecs.getreader("utf-8")(request.files['csv_data'])
         except KeyError:
             # show error for bad form
             message = 'bad form data'
@@ -788,20 +789,17 @@ def bulk_actor(file):
         # show error for bad formatted date
         raise KeyError('bad date format in csv, must be YYYY-mm-dd')
     for t in tuples:
-        if not re.match(r'[0-9]+', t[0]):
+        if not re.match(r'[0-9]+', str(t[0])):
             # ensure uid is numeric
             raise KeyError('uid not numeric (' + t[0] + ')')
-        if (not re.match(r'[a-zA-z ]*', t[1])) or len(t[1]) > 40:
+        if (not re.match(r'[a-zA-z ]*', str(t[1]))) or len(t[1]) > 40:
             # check validation on given name too
-            raise KeyError('name must be alpha characters and spaces and at most 40 characters')
-        if (not re.match(r'[a-zA-z ]+', t[2])) or len(t[2]) > 40:
-            # check validation on stage name too
             raise KeyError('name must be alpha characters and spaces and at most 40 characters')
     curs = db_connection.cursor()
     # try to enter the data
     try:
         # try to insert all the actors
-        curs.executemany("INSERT INTO ACTOR VALUES (?, ?, ?, ?)", tuples)
+        curs.executemany("INSERT INTO ACTOR VALUES (?, ?, ?)", tuples)
         # get the number of rows affected
         num_rows = curs.rowcount
         # commit the changes

@@ -1,0 +1,4 @@
+mid	uid	character_role
+18888	42610	Main Character
+18889	42611	some guy
+18890	42313	Narrator

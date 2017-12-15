@@ -1,0 +1,4 @@
+mid	uid	text	rating
+18888	42612	blah blah blah, blah blah "and blah"	5
+18889	42612	some review text	1
+18890	42316	Terrible. Who hires movies anyway?	0

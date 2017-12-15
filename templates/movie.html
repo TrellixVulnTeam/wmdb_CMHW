@@ -2,9 +2,15 @@
 {% block body %}
     <table align="center">
         <tr>
+            {% if poster is not none %}
             <td style="padding-right: 10px">
                 <img src="{{ url_for('static', filename='posters/' + poster) }}" alt="{{ movie_info['title'] }}"/>
             </td>
+            {% else %}
+            <td style="padding-right: 10px">
+                <p>No Poster</p>
+            </td>
+            {% endif %}
             <td style="padding-left: 10px">
                 <h3>Title: {{ movie_info['title'] }}</h3>
                 <p>Director: {{ movie_info['director'] }}</p>

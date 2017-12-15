@@ -1,3 +1,4 @@
 uid	name	DoB
-52	some guy	1998-12-15
-53	some other guy	1218-01-01
+42610	Acty McActorface	1941-12-15
+42611	Gary Really Oldman	1218-01-01
+42613	Actor McDirectorface	1218-01-01

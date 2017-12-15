@@ -1,7 +1,7 @@
 .idea
 __*
-scripts/api.key
-scripts/tmdb.key
+data_generation/api.key
+data_generation/tmdb.key
 static/posters
 .vscode
 .DS_Store

@@ -1,6 +1,5 @@
 uid	position
-50	moderator
-51	moderator
-52	moderator
-53	moderator
-54	moderator
+42607	moderator
+42608	moderator
+42609	moderator
+42614	admin

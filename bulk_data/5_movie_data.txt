@@ -1,4 +1,4 @@
 director_uid	title	release_date	entered_by
-6	bulk movie 1	1995-08-11	0
-9	bulk movie 2	1885-01-01	1
-11	bulk movie 3	2017-12-09	2
+42612	March of the Armies	1995-08-11	42608
+42613	Movie McMovieface	1885-01-01	42609
+42613	Movie's for Hire	2017-12-09	42614
