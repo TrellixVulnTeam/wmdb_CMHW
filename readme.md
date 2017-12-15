@@ -19,10 +19,17 @@ Each interface is linked at the top of our web page. See the section on user aut
 The search interface has the following three options:
 
 ### Data Entry
-The data entry interface allows moderators and admins to enter data into the system. Each table has a form for entering data, with some including references to possible candidates for entry (e.g., UIDs are displayed for entering new admins). For each of the entry forms, you have to specify valid ids for foreign keys, otherwise the entry will fail. For bulk laoding, the data must be formatted as *tab* separated values, with exactly the correct heading names. We have provided sample files in the /bulk_data/ directory. If using these files to test the upload function, then you must enter them in the order they are presented (so that the IDs and foreign keys work correctly). The bulk uploads will fail if any constraints fail. When uploading a poster, the filetype must be correct. Uploading a malformed image has undefined behavior.
+The data entry interface allows moderators and admins to enter data into the system. Each table has a form for entering data, with some including references to possible candidates for entry (e.g., UIDs are displayed for entering new admins). For each of the entry forms, you have to specify valid ids for foreign keys, otherwise the entry will fail. For bulk laoding, the data must be formatted as *tab* separated values, with exactly the correct heading names. We have provided sample files in the /bulk_data/ directory. If using these files to test the upload function, then you must enter them in the order they are presented (so that the IDs and foreign keys work correctly). The bulk uploads will fail if any constraints fail. When uploading a poster, the filetype must be correct. Uploading a malformed image has undefined behavior. Below are samples of the forms, other forms are similar.
+![Add User][https://github.com/jeichenhofer/wmdb/screenshots/add_user.png]
+![Add Movie][https://github.com/jeichenhofer/wmdb/screenshots/add_movie.png]
+![Add Poster][https://github.com/jeichenhofer/wmdb/screenshots/add_poster.png]
+![Bulk Entry][https://github.com/jeichenhofer/wmdb/screenshots/add_bulk.png]
 
 ### Browsing
-The browsing interface displays the entries for each table (if allowed by the user authentication). Every user can browse the movie table, which also has links to movie detail pages (where reviews are also shown).
+The browsing interface displays the entries for each table (if allowed by the user authentication). Every user can browse the movie table, which also has links to movie detail pages (where reviews are also shown). Each table/relation has a display table. Below is a screenshot of the user table:
+![Browse User][https://github.com/jeichenhofer/wmdb/screenshots/browse_user.png]
+The following is an example of a movie detail page:
+![Movie Details][https://github.com/jeichenhofer/wmdb/screenshots/movie_details.png]
 
 
 ## Tables
