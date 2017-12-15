@@ -11,9 +11,9 @@ db_path = os.path.join(
         )
 
 
-@search_api.route("/search")
+@search_api.route('/search', methods=['GET'])
 def search_index():
-    return "search index"
+    return render_template('search/search_index.html')
 
 
 @search_api.route('/search_rating', methods=['GET', 'POST'])
@@ -44,20 +44,18 @@ def search_directory_famous_movies():
     elif request.method == 'GET':
         return render_template('search/search_directorMovie.html', row='', directorName='')
 
-    
-
 @search_api.route('/search_user', methods=['POST', 'GET'])
 def search_user():
-    if request.form == 'GET':
-        return render_template('search/search_user.html', userName='', userEmail='')
-    elif request.form=='POST':
+    if request.method == 'GET':
+        return render_template('search/search_user.html', result='', user_email='')
+    elif request.method == 'POST':
         user_email = request.form['email']
         with sql.connect(db_path) as con:
             cur = con.cursor()
             query = "SELECT u_name, email FROM USER WHERE u_name LIKE ?"
-            cur.execute(query, (user_email))
+            cur.execute(query, (user_email,))
             result = cur.fetchall()
-        return render_template('search/search_user.html', userName=result, userEmail=user_email)
+        return render_template('search/search_user.html', result=result, user_email=user_email)
 
 
 

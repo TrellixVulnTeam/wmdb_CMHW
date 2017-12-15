@@ -8,16 +8,18 @@
     
         <body>
             <div class="wrap">
-                <h2 align="center"> Saerch user's user name from given email address</address></h2> 
+                <h2 align="center"> Saerch user's name from email</address></h2> 
                 <div class="search">
-                    <form action = "url_for('director')}} method" = "POST">
-                        <input type="text" class="searchTerm" name="email" placeholder="Type in the user's email address">
+                    
+                    <form action="{{url_for('search_api.search_user')}}" method="POST">
+                        <input type="text" class="searchTerm" name="email" placeholder="Type in the user email you want to search">
                         <button type="submit" class="searchButton">
-                                <i class="fa fa-search"></i>
+                            <i class="fa fa-search"></i>
                         </button>
                     </form>
                 </div>
-                <p> {{userName}}
+                <p> {{user_email}} </p>
+                <p> {{result['u_name']}} </p>
             </div>            
         </form>
 </body>
