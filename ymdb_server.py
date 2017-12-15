@@ -1,6 +1,9 @@
 import secrets
 
-from flask import Flask, render_template, abort
+import re
+import sqlite3
+
+from flask import Flask, render_template, abort, session, redirect, url_for, request
 
 from accounts import accounts_api
 from browse import browse_api
@@ -26,6 +29,7 @@ def add_header(response):
     response.cache_control.max_age = 0
     return response
 """
+
 
 @app.route('/<mid>')
 def view_movie(mid):
@@ -84,7 +88,7 @@ def view_movie(mid):
         characters.append(row[1])
 
     # get reviews
-    curs.execute('SELECT UID, text, rating, created_date FROM REVIEW WHERE MID = ? ORDER BY created_date', (mid,))
+    curs.execute('SELECT UID, text, rating, created_date FROM REVIEW WHERE MID = ? ORDER BY created_date DESC ', (mid,))
     review_rows = curs.fetchall()
     usernames = []
     reviews = []
@@ -98,6 +102,7 @@ def view_movie(mid):
         dates.append(row[3])
 
     movie_info = {
+        'mid': mid,
         'title': title,
         'director': director_name,
         'released': released,
@@ -120,6 +125,61 @@ def view_movie(mid):
                            character_info=character_info,
                            review_info=review_info
                            )
+
+
+@app.route('/<mid>/review', methods=['POST'])
+def make_review(mid):
+    # first check that mid is an int
+    try:
+        mid = int(mid)
+    except ValueError:
+        abort(400)
+        return
+
+    if session['uid'] is None:
+        return redirect(url_for('accounts_api.forbidden', account_type='user', resource='/movie/review'))
+
+    # check if the movie is in the database
+    curs = db_connection.cursor()
+    curs.execute('SELECT MID, director_UID, title, release_date FROM MOVIE WHERE MID = ?', (mid,))
+    movie_row = curs.fetchone()
+    # if not found, then don't render
+    if movie_row is None:
+        # TODO: render a 404
+        abort(404)
+        return
+
+    try:
+        text = request.form['text']
+        rating = int(request.form['rating'])
+    except KeyError:
+        abort(400)
+        return
+
+    if not re.match(r'[0-9a-zA-Z_.,"\'()!@$*=\-+&:]*', text):
+        # test for text matching only alphanumeric and punctuation
+        message = 'text must be alphanumeric with punctuation (no carats, braces, or octothorpes)'
+        return render_template('movie.html', message=message), 400
+    if rating < 0 or rating > 5:
+        # make sure rating is [0:5]
+        message = 'rating must be from zero to five'
+        return render_template('movie.html', message=message), 400
+
+    try:
+        uid = session['uid']
+        # try to insert the new review entry
+        # pass now as created date for this review
+        curs.execute("INSERT INTO REVIEW VALUES (?, ?, ?, ?, strftime('%s', 'now'))",
+                     (mid, uid, text, rating))
+        # commit changes
+        db_connection.commit()
+        return redirect(url_for('view_movie', mid=mid))
+    except sqlite3.Error as err:
+        # handle sql errors (probably mid, uid already existing)
+        db_connection.rollback()
+        # show error message on bad value
+        message = 'error inserting tuple (' + str(err) + ')'
+        return render_template('movie.html', message=message), 400
 
 
 if __name__ == '__main__':

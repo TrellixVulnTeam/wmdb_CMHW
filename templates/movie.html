@@ -3,13 +3,13 @@
     <table align="center">
         <tr>
             {% if poster is not none %}
-            <td style="padding-right: 10px">
-                <img src="{{ url_for('static', filename='posters/' + poster) }}" alt="{{ movie_info['title'] }}"/>
-            </td>
+                <td style="padding-right: 10px">
+                    <img src="{{ url_for('static', filename='posters/' + poster) }}" alt="{{ movie_info['title'] }}"/>
+                </td>
             {% else %}
-            <td style="padding-right: 10px">
-                <p>No Poster</p>
-            </td>
+                <td style="padding-right: 10px">
+                    <p>No Poster</p>
+                </td>
             {% endif %}
             <td style="padding-left: 10px">
                 <h3>Title: {{ movie_info['title'] }}</h3>
@@ -34,6 +34,18 @@
         {% endfor %}
     </table>
 
+    {% if 'uid' in session %}
+        {% if message is not none %}
+            <p>{{ message }}</p>
+        {% endif %}
+        <p>Enter a review:</p>
+        <form action="{{ url_for('make_review', mid=movie_info['mid']) }}" method="POST">
+            <input type="text" name="text"/>
+            <p>rating - rating (from 0 to 5) for this review</p>
+            <input type="number" name="rating" min="0" max="5"/>
+            <p>Add Review: <input type="submit" value="Submit"/></p>
+        </form>
+    {% endif %}
     <table class="reviews" style="padding-top: 20px" width="100%" align="center">
         <thead class="reviews">
         <th width="25%" class="reviews">Rating</th>
